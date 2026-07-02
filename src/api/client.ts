@@ -59,7 +59,9 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post(`${API_BASE}/auth/refresh-token`, {
+        const storedToken = localStorage.getItem('ajocore_token')
+        const response = await axios.post(`${API_BASE}/auth/refresh`, {
+          token: storedToken,
           refreshToken,
         })
         const { token: newToken, refreshToken: newRefresh } = response.data
