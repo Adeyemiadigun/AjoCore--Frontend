@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { PiggyBank } from '@phosphor-icons/react'
 import { Card } from '@/components/ui/Card'
@@ -8,12 +8,15 @@ import { Button } from '@/components/ui/Button'
 import { extractApiError } from '@/lib/api-utils'
 
 export default function LoginPage() {
-  const { login, adminLogin, isLoading } = useAuth()
+  const navigate = useNavigate()
+  const { login, adminLogin, isLoading, isAuthenticated } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminCode, setAdminCode] = useState('')
   const [error, setError] = useState('')
+
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,6 +27,7 @@ export default function LoginPage() {
       } else {
         await login({ email, password })
       }
+      navigate('/dashboard', { replace: true })
     } catch (err: unknown) {
       setError(extractApiError(err, 'Login failed.'))
     }

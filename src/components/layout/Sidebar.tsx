@@ -32,6 +32,7 @@ const systemLinks = [
   { to: '/dashboard', label: 'Overview', icon: ChartLineUp },
   { to: '/dashboard/users', label: 'Users', icon: UsersThree },
   { to: '/dashboard/cycles', label: 'All Cycles', icon: Coins },
+  { to: '/dashboard/profile', label: 'Profile', icon: User },
   { to: '/dashboard/settings', label: 'Settings', icon: GearSix },
 ]
 
