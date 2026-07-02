@@ -62,22 +62,3 @@
     max-width: 75ch;
   }
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-nomba-bg: oklch(0.18 0.03 260);
-    --color-nomba-surface: oklch(0.25 0.03 260);
-    --color-nomba-text: oklch(0.97 0 260);
-    --color-nomba-text-secondary: oklch(0.65 0.03 250);
-    --color-nomba-border: oklch(0.35 0.02 260);
-    --color-nomba-success-bg: oklch(0.3 0.07 160);
-    --color-nomba-error-bg: oklch(0.3 0.1 25);
-    --color-nomba-warning-bg: oklch(0.35 0.1 50);
-    --color-nomba-info-bg: oklch(0.28 0.05 255);
-    --color-admin-accent-light: oklch(0.25 0.07 290);
-    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-    --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-    --shadow-dropdown: 0 10px 25px -5px rgb(0 0 0 / 0.12), 0 4px 10px -6px rgb(0 0 0 / 0.08);
-    --shadow-modal: 0 20px 50px -12px rgb(0 0 0 / 0.25);
-  }
-}

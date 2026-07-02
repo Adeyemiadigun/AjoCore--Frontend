@@ -2,7 +2,7 @@ import { motion } from 'motion/react'
 import { stats } from './data'
 import { AnimatedCounter, SectionFade } from './components'
 
-export function StatsBar() {
+export function MetricsBar() {
   return (
     <section className="relative -mt-16 z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <SectionFade>

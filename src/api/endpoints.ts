@@ -16,53 +16,78 @@ import type {
   ContributionLedger,
   CycleMember,
 } from '@/types/api'
-import type { CycleType, CycleStatus } from '@/types/enums'
+import type { CycleType, CycleStatus, ContributionFrequency, UserRole } from '@/types/enums'
 
 const TYPE_MAP: Record<string, CycleType> = {
-  Personal: 'Individual',
-  Rosca: 'Group',
-  Asca: 'Group',
-  Individual: 'Individual',
-  Group: 'Group',
+  Personal: CycleType.Individual,
+  Rosca: CycleType.Group,
+  Asca: CycleType.Group,
+  Individual: CycleType.Individual,
+  Group: CycleType.Group,
 }
 
 const STATUS_MAP: Record<string, CycleStatus> = {
-  Pending: 'Pending',
-  Active: 'Active',
-  Completed: 'Completed',
+  Pending: CycleStatus.Pending,
+  Active: CycleStatus.Active,
+  Completed: CycleStatus.Completed,
+}
+
+function intervalToFrequency(days: number): ContributionFrequency {
+  if (days >= 28) return ContributionFrequency.Monthly
+  if (days >= 14) return ContributionFrequency.BiWeekly
+  if (days >= 7) return ContributionFrequency.Weekly
+  return ContributionFrequency.Daily
 }
 
 function mapCycle(be: any): SavingCycle {
-  const targetAmount = Number(be.targetAmount ?? be.targetAmount ?? 0)
-  const totalPaid = Number(be.totalPaid ?? 0)
+  const targetAmount = Number(be.TargetAmount ?? be.targetAmount ?? 0)
+  const totalSaved = Number(be.TotalSaved ?? be.totalSaved ?? 0)
   return {
-    id: be.id ?? be.id ?? '',
-    cycleType: TYPE_MAP[be.cycleType ?? be.cycleType ?? ''] ?? 'Individual',
-    cycleName: be.name ?? be.cycleName ?? '',
+    id: be.Id ?? be.id ?? '',
+    cycleType: TYPE_MAP[be.CycleType ?? be.cycleType ?? ''] ?? CycleType.Individual,
+    cycleName: be.Name ?? be.name ?? be.cycleName ?? '',
     targetAmount,
-    totalSaved: totalPaid,
-    frequency: 'Weekly',
-    contributionAmount: Number(be.contributionAmount ?? 0),
-    startDate: be.startDate ?? be.startDate ?? '',
-    endDate: be.endDate ?? be.endDate ?? '',
-    status: STATUS_MAP[be.status ?? ''] ?? 'Active',
-    memberCount: be.members?.length ?? be.memberCount ?? 0,
-    nextContributionDate: be.nextContributionDate ?? be.startDate ?? '',
-    progress: targetAmount > 0 ? Math.min(Math.round((totalPaid / targetAmount) * 100), 100) : 0,
+    totalSaved,
+    frequency: intervalToFrequency(be.IntervalDays ?? be.intervalDays ?? 7),
+    contributionAmount: Number(be.ContributionAmount ?? be.contributionAmount ?? 0),
+    startDate: be.StartDate ?? be.startDate ?? '',
+    endDate: be.EndDate ?? be.endDate ?? '',
+    status: STATUS_MAP[be.Status ?? be.status ?? ''] ?? CycleStatus.Active,
+    memberCount: be.Members?.length ?? be.memberCount ?? 0,
+    nextContributionDate: be.NextContributionDate ?? be.nextContributionDate ?? be.StartDate ?? '',
+    progress: targetAmount > 0 ? Math.min(Math.round((totalSaved / targetAmount) * 100), 100) : 0,
+  }
+}
+
+function mapProfile(be: any): UserProfile {
+  return {
+    id: be.Id ?? be.id ?? '',
+    firstName: be.FirstName ?? be.firstName ?? '',
+    lastName: be.LastName ?? be.lastName ?? '',
+    email: be.Email ?? be.email ?? '',
+    phoneNumber: be.PhoneNumber ?? be.phoneNumber ?? '',
+    role: be.Role ?? be.role ?? 'Trader',
+    bvn: be.Bvn ?? be.bvn ?? undefined,
+    dateOfBirth: be.DateOfBirth ?? be.dateOfBirth ?? undefined,
+    payoutAccountNumber: be.PayoutAccountNumber ?? be.payoutAccountNumber ?? undefined,
+    payoutBankName: be.PayoutBankName ?? be.payoutBankName ?? undefined,
+    payoutAccountName: be.PayoutAccountName ?? be.payoutAccountName ?? undefined,
+    isActive: be.IsKycCompleted ?? be.isKycCompleted ?? be.IsEmailVerified ?? true,
+    createdAt: be.CreatedAt ?? be.createdAt ?? '',
   }
 }
 
 function mapGroup(be: any): CooperativeGroup {
   return {
-    id: be.id ?? '',
-    groupName: be.name ?? be.groupName ?? '',
-    description: be.description ?? '',
-    memberCount: be.memberCount ?? 0,
-    savingsGoal: be.savingsGoal ?? 0,
-    totalSaved: be.totalSaved ?? 0,
-    createdBy: be.adminName ?? be.createdBy ?? '',
-    createdAt: be.createdAt ?? '',
-    isActive: be.isActive ?? true,
+    id: be.Id ?? be.id ?? '',
+    groupName: be.Name ?? be.name ?? be.groupName ?? '',
+    description: be.Description ?? be.description ?? '',
+    memberCount: be.MemberCount ?? be.memberCount ?? 0,
+    savingsGoal: Number(be.SavingsGoal ?? be.savingsGoal ?? 0),
+    totalSaved: Number(be.TotalSaved ?? be.totalSaved ?? 0),
+    createdBy: be.AdminName ?? be.adminName ?? be.createdBy ?? '',
+    createdAt: be.CreatedAt ?? be.createdAt ?? '',
+    isActive: be.IsActive ?? be.isActive ?? true,
   }
 }
 
@@ -77,6 +102,26 @@ export const auth = {
     apiClient.post<AuthResponse>('/auth/admin-login', data).then((r) => r.data),
   refreshToken: (token: string, refreshToken: string) =>
     apiClient.post<AuthResponse>('/auth/refresh', { token, refreshToken }).then((r) => r.data),
+  profile: async () => {
+    const stored = localStorage.getItem('ajocore_user')
+    const role: UserRole = stored ? (JSON.parse(stored) as any).role : 'Trader'
+    const endpoint = role === 'CooperativeAdmin' ? '/profile/cooperative-admin' : '/profile/trader'
+    const res = await apiClient.get<{ success: boolean; data: any }>(endpoint)
+    return mapProfile(res.data.data)
+  },
+  updateProfile: async (data: Partial<UserProfile>) => {
+    const payload: Record<string, any> = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phoneNumber: data.phoneNumber,
+    }
+    if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth
+    const stored = localStorage.getItem('ajocore_user')
+    const role: UserRole = stored ? (JSON.parse(stored) as any).role : 'Trader'
+    const endpoint = role === 'CooperativeAdmin' ? '/profile/cooperative-admin' : '/profile/trader'
+    const res = await apiClient.put<{ success: boolean; data: any }>(endpoint, payload)
+    return mapProfile(res.data.data)
+  },
 }
 
 export const balances = {
@@ -94,9 +139,12 @@ export const balances = {
     apiClient.get<any>(groupId ? `/balances/cooperative/${groupId}` : '/balances/cooperative').then(
       (r) =>
         ({
+          walletBalance: r.data.groupWalletBalance ?? 0,
+          totalSavings: r.data.totalContributions ?? 0,
+          activeCycles: 0,
+          pendingContributions: 0,
           totalGroupSavings: r.data.totalContributions ?? 0,
           totalMembers: 0,
-          activeCycles: 0,
           totalGroups: 0,
         }) as BalanceInfo,
     ),
@@ -104,8 +152,11 @@ export const balances = {
     apiClient.get<any>('/balances/system').then(
       (r) =>
         ({
-          totalGroupSavings: r.data.totalContributions ?? 0,
+          walletBalance: r.data.systemWalletBalance ?? 0,
+          totalSavings: r.data.totalContributions ?? 0,
           activeCycles: 0,
+          pendingContributions: 0,
+          totalGroupSavings: r.data.totalContributions ?? 0,
           totalGroups: 0,
           totalMembers: 0,
         }) as BalanceInfo,
@@ -167,7 +218,13 @@ export const groups = {
 }
 
 export const banks = {
-  list: () => apiClient.get<{ success: boolean; data: Bank[] }>('/banks').then((r) => r.data.data),
+  list: () =>
+    apiClient.get<{ success: boolean; data: any[] }>('/banks').then((r) =>
+      r.data.data.map((b) => ({
+        bankName: b.Name ?? b.name ?? '',
+        bankCode: b.Code ?? b.code ?? '',
+      })),
+    ),
   verifyAccount: (accountNumber: string, bankName: string) =>
     apiClient
       .get<{ success: boolean; data: { accountName: string } }>('/banks/lookup', {

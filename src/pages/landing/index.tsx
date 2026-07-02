@@ -1,7 +1,7 @@
 import { NavBar } from './NavBar'
 import { HeroSection } from './HeroSection'
 import { TrustStrip } from './TrustStrip'
-import { StatsBar } from './StatsBar'
+import { MetricsBar } from './MetricsBar'
 import { ProblemSection } from './ProblemSection'
 import { HowItWorksSection } from './HowItWorksSection'
 import { BenefitsSection } from './BenefitsSection'
@@ -18,7 +18,7 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <TrustStrip />
-        <StatsBar />
+        <MetricsBar />
         <ProblemSection />
         <HowItWorksSection />
         <BenefitsSection />

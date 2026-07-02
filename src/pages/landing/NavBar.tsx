@@ -20,7 +20,7 @@ export function NavBar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all ${
-        scrolled ? 'bg-nomba-surface/80 backdrop-blur-xl shadow-card' : 'bg-transparent'
+        scrolled ? 'bg-neutral-900/95 backdrop-blur-xl shadow-card text-white' : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,32 +29,36 @@ export function NavBar() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-nomba-yellow to-nomba-yellow-dark flex items-center justify-center shadow-card-hover shadow-nomba-yellow/30">
               <PiggyBank className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-nomba-text tracking-tight">AjoCore</span>
+            <span
+              className={`text-xl font-bold tracking-tight ${scrolled ? 'text-white' : 'text-nomba-text'}`}
+            >
+              AjoCore
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
             <a
               href="#how-it-works"
-              className="text-sm font-medium text-nomba-text-secondary hover:text-nomba-yellow-dark transition-colors"
+              className={`text-sm font-medium transition-colors ${scrolled ? 'text-white/70 hover:text-white' : 'text-nomba-text-secondary hover:text-nomba-yellow-dark'}`}
             >
               How It Works
             </a>
             <a
               href="#benefits"
-              className="text-sm font-medium text-nomba-text-secondary hover:text-nomba-yellow-dark transition-colors"
+              className={`text-sm font-medium transition-colors ${scrolled ? 'text-white/70 hover:text-white' : 'text-nomba-text-secondary hover:text-nomba-yellow-dark'}`}
             >
               Benefits
             </a>
             <a
               href="#faq"
-              className="text-sm font-medium text-nomba-text-secondary hover:text-nomba-yellow-dark transition-colors"
+              className={`text-sm font-medium transition-colors ${scrolled ? 'text-white/70 hover:text-white' : 'text-nomba-text-secondary hover:text-nomba-yellow-dark'}`}
             >
               FAQ
             </a>
             {isAuthenticated ? (
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nomba-text text-white text-sm font-semibold hover:opacity-80 transition-all"
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${scrolled ? 'bg-white text-neutral-900 hover:opacity-90' : 'bg-nomba-text text-white hover:opacity-80'}`}
               >
                 Dashboard <CaretRight className="w-4 h-4" />
               </Link>
@@ -62,7 +66,7 @@ export function NavBar() {
               <div className="flex items-center gap-3">
                 <Link
                   to="/login"
-                  className="px-5 py-2.5 text-sm font-semibold text-nomba-text hover:text-nomba-yellow-dark transition-colors"
+                  className={`px-5 py-2.5 text-sm font-semibold transition-colors ${scrolled ? 'text-white/80 hover:text-white' : 'text-nomba-text hover:text-nomba-yellow-dark'}`}
                 >
                   Sign In
                 </Link>
@@ -78,7 +82,7 @@ export function NavBar() {
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-nomba-text-secondary"
+            className={`md:hidden p-2 ${scrolled ? 'text-white/70' : 'text-nomba-text-secondary'}`}
           >
             {mobileOpen ? <X className="w-6 h-6" /> : <List className="w-6 h-6" />}
           </button>
