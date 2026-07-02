@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#121212"/>
+  <rect x="60" y="60" width="1080" height="510" rx="24" fill="#1A1A1A"/>
+  <rect x="100" y="100" width="80" height="80" rx="16" fill="#FFCC00"/>
+  <text x="140" y="156" font-family="sans-serif" font-size="48" font-weight="bold" fill="#121212" text-anchor="middle">A</text>
+  <text x="210" y="156" font-family="sans-serif" font-size="48" font-weight="bold" fill="#FFFFFF">AjoCore</text>
+  <text x="100" y="260" font-family="sans-serif" font-size="64" font-weight="bold" fill="#FFFFFF">Smart Cooperative</text>
+  <text x="100" y="340" font-family="sans-serif" font-size="64" font-weight="bold" fill="#FFCC00">Savings</text>
+  <text x="100" y="400" font-family="sans-serif" font-size="28" fill="#94A3B8">Join thousands of Nigerians saving smarter with AjoCore.</text>
+  <rect x="100" y="480" width="200" height="60" rx="12" fill="#FFCC00"/>
+  <text x="200" y="520" font-family="sans-serif" font-size="24" font-weight="bold" fill="#121212" text-anchor="middle">Start Saving</text>
+</svg>
