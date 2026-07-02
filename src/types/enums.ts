@@ -5,6 +5,7 @@ export enum UserRole {
 }
 
 export enum CycleStatus {
+  Pending = 'Pending',
   Active = 'Active',
   Completed = 'Completed',
   Liquidated = 'Liquidated',
@@ -14,6 +15,9 @@ export enum CycleStatus {
 export enum CycleType {
   Individual = 'Individual',
   Group = 'Group',
+  Rosca = 'Rosca',
+  Asca = 'Asca',
+  Personal = 'Personal',
 }
 
 export enum ContributionFrequency {
