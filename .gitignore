@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Dependencies
+ENDPOINTS-TS-ERRORS.md*
 node_modules
 dist
 dist-ssr
