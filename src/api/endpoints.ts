@@ -16,7 +16,7 @@ import type {
   ContributionLedger,
   CycleMember,
 } from '@/types/api'
-import type { CycleType, CycleStatus, ContributionFrequency, UserRole } from '@/types/enums'
+import { CycleType, CycleStatus, ContributionFrequency, UserRole } from '@/types/enums'
 
 const TYPE_MAP: Record<string, CycleType> = {
   Personal: CycleType.Individual,
@@ -54,8 +54,10 @@ function mapCycle(be: any): SavingCycle {
     endDate: be.EndDate ?? be.endDate ?? '',
     status: STATUS_MAP[be.Status ?? be.status ?? ''] ?? CycleStatus.Active,
     memberCount: be.Members?.length ?? be.memberCount ?? 0,
-    nextContributionDate: be.NextContributionDate ?? be.nextContributionDate ?? be.StartDate ?? '',
+    nextContributionDate:
+      be.NextContributionDate ?? be.nextContributionDate ?? be.StartDate ?? null,
     progress: targetAmount > 0 ? Math.min(Math.round((totalSaved / targetAmount) * 100), 100) : 0,
+    groupId: be.CooperativeGroupId ?? be.cooperativeGroupId ?? null,
   }
 }
 
@@ -88,6 +90,7 @@ function mapGroup(be: any): CooperativeGroup {
     createdBy: be.AdminName ?? be.adminName ?? be.createdBy ?? '',
     createdAt: be.CreatedAt ?? be.createdAt ?? '',
     isActive: be.IsActive ?? be.isActive ?? true,
+    membershipStatus: be.MembershipStatus ?? be.membershipStatus ?? null,
   }
 }
 
@@ -129,23 +132,26 @@ export const balances = {
     apiClient.get<any>('/balances/my-balances').then(
       (r) =>
         ({
-          walletBalance: r.data.overallTotalPaid ?? 0,
-          totalSavings: r.data.overallTotalPaid ?? 0,
-          activeCycles: r.data.cycleBalances?.length ?? 0,
-          pendingContributions: 0,
+          walletBalance: r.data.overallTotalPaid ?? r.data.OverallTotalPaid ?? 0,
+          totalSavings: (r.data.cycleBalances || r.data.CycleBalances || []).reduce(
+            (acc: number, cycle: any) => acc + (cycle.TargetAmount ?? cycle.targetAmount ?? 0),
+            0,
+          ),
+          activeCycles: (r.data.cycleBalances || r.data.CycleBalances || []).length,
+          pendingContributions: r.data.pendingContributions ?? r.data.PendingContributions ?? 0,
         }) as BalanceInfo,
     ),
-  admin: (groupId?: string) =>
-    apiClient.get<any>(groupId ? `/balances/cooperative/${groupId}` : '/balances/cooperative').then(
+  admin: (groupId: string) =>
+    apiClient.get<any>(`/balances/cooperative/${groupId}`).then(
       (r) =>
         ({
-          walletBalance: r.data.groupWalletBalance ?? 0,
-          totalSavings: r.data.totalContributions ?? 0,
-          activeCycles: 0,
-          pendingContributions: 0,
-          totalGroupSavings: r.data.totalContributions ?? 0,
-          totalMembers: 0,
-          totalGroups: 0,
+          walletBalance: r.data.groupWalletBalance ?? r.data.GroupWalletBalance ?? 0,
+          totalSavings: r.data.totalContributions ?? r.data.TotalContributions ?? 0,
+          activeCycles: r.data.activeCycles ?? r.data.ActiveCycles ?? 0,
+          pendingContributions: r.data.pendingContributions ?? r.data.PendingContributions ?? 0,
+          totalGroupSavings: r.data.totalContributions ?? r.data.TotalContributions ?? 0,
+          totalMembers: r.data.totalMembers ?? r.data.TotalMembers ?? 0,
+          totalGroups: r.data.totalGroups ?? r.data.TotalGroups ?? 0,
         }) as BalanceInfo,
     ),
   system: () =>
@@ -165,6 +171,38 @@ export const balances = {
 
 export const cycles = {
   list: () => apiClient.get<any[]>('/saving-cycles').then((r) => r.data.map(mapCycle)),
+  myAll: () =>
+    apiClient.get<any>('/balances/my-balances').then((r) =>
+      (r.data.cycleBalances || r.data.CycleBalances || []).map(
+        (cb: any) =>
+          ({
+            id: cb.CycleId ?? cb.cycleId ?? '',
+            cycleName: cb.CycleName ?? cb.cycleName ?? '',
+            cycleType: TYPE_MAP[cb.CycleType ?? cb.cycleType ?? ''] ?? CycleType.Individual,
+            targetAmount: Number(cb.TargetAmount ?? cb.targetAmount ?? 0),
+            totalSaved: Number(cb.TotalPaid ?? cb.totalPaid ?? 0),
+            contributionAmount: 0,
+            frequency: ContributionFrequency.Monthly,
+            startDate: '',
+            endDate: '',
+            status: CycleStatus.Active,
+            memberCount: 1,
+            nextContributionDate: null,
+            progress:
+              (cb.TargetAmount ?? cb.targetAmount ?? 0) > 0
+                ? Math.min(
+                    Math.round(
+                      ((cb.TotalPaid ?? cb.totalPaid ?? 0) /
+                        (cb.TargetAmount ?? cb.targetAmount ?? 0)) *
+                        100,
+                    ),
+                    100,
+                  )
+                : 0,
+            groupId: cb.CooperativeGroupId ?? cb.cooperativeGroupId ?? null,
+          }) as SavingCycle,
+      ),
+    ),
   myCycles: () =>
     apiClient.get<any[]>('/saving-cycles/my-personal').then((r) => r.data.map(mapCycle)),
   get: (id: string) =>
@@ -175,7 +213,16 @@ export const cycles = {
           contributions: (r.data.contributions ??
             r.data.memberContributions ??
             []) as ContributionLedger[],
-          members: (r.data.members ?? []) as CycleMember[],
+          members: (r.data.members ?? r.data.Members ?? []).map((m: any) => ({
+            id: m.id ?? m.Id ?? '',
+            userId: m.userId ?? m.UserId ?? '',
+            fullName: m.traderName ?? m.TraderName ?? '',
+            email: m.traderEmail ?? m.TraderEmail ?? '',
+            totalContributed: m.totalContributed ?? m.TotalContributed ?? 0,
+            payoutOrder: m.payoutOrder ?? m.PayoutOrder ?? 0,
+            joinDate: m.joinedAt ?? m.JoinedAt ?? '',
+            status: m.status ?? m.Status ?? '',
+          })) as CycleMember[],
           totalContributions: r.data.totalContributions ?? 0,
           totalPayouts: r.data.totalPayouts ?? 0,
         }) as SavingCycleDetail,
@@ -186,24 +233,82 @@ export const cycles = {
         name: data.cycleName,
         cycleType: 'Personal',
         contributionAmount: data.contributionAmount,
-        intervalDays: 7,
+        intervalDays: data.intervalDays,
+        startDate: data.startDate,
+        endDate: data.endDate,
       })
       .then((r) => r.data),
+  createGroupCycle: (data: {
+    name: string
+    cycleType: string
+    contributionAmount: number
+    intervalDays: number
+    cooperativeGroupId: string
+  }) => apiClient.post<any>('/saving-cycles', data).then((r) => r.data),
   liquidate: (id: string) =>
     apiClient.post(`/saving-cycles/${id}/liquidate-early`).then((r) => r.data),
+  joinCycle: (cycleId: string) =>
+    apiClient.post<any>(`/saving-cycles/${cycleId}/join`).then((r) => r.data),
+  start: (id: string) => apiClient.post(`/saving-cycles/${id}/start`).then((r) => r.data),
+  reorderMembers: (data: { id: string; members: { memberId: string; payoutOrder: number }[] }) =>
+    apiClient.post(`/saving-cycles/${data.id}/members/reorder`, data.members).then((r) => r.data),
+  getMyDetails: (cycleId: string, cycleType: string) => {
+    const typeRoute =
+      cycleType === 'Personal' || cycleType === 'Individual'
+        ? 'personal'
+        : cycleType === 'Rosca' || cycleType === 'ROSCA'
+          ? 'rosca'
+          : 'asca'
+    return apiClient.get<any>(`/saving-cycles/${typeRoute}/${cycleId}`).then((r) => ({
+      cycleId: r.data.cycleId ?? r.data.CycleId ?? '',
+      name: r.data.name ?? r.data.Name ?? '',
+      cycleType: r.data.cycleType ?? r.data.CycleType ?? '',
+      contributionAmount: r.data.contributionAmount ?? r.data.ContributionAmount ?? 0,
+      intervalDays: r.data.intervalDays ?? r.data.IntervalDays ?? 0,
+      status: r.data.status ?? r.data.Status ?? '',
+      startDate: r.data.startDate ?? r.data.StartDate ?? '',
+      endDate: r.data.endDate ?? r.data.EndDate ?? null,
+      virtualAccountNumber: r.data.virtualAccountNumber ?? r.data.VirtualAccountNumber ?? null,
+      virtualAccountBank: r.data.virtualAccountBank ?? r.data.VirtualAccountBank ?? null,
+      virtualAccountName: r.data.virtualAccountName ?? r.data.VirtualAccountName ?? null,
+      payoutOrder: r.data.payoutOrder ?? r.data.PayoutOrder ?? 0,
+    }))
+  },
+  getContributions: (memberId: string) =>
+    apiClient.get<any>(`/saving-cycles/members/${memberId}/contributions`).then((r) => ({
+      memberName: r.data.memberName ?? r.data.MemberName ?? '',
+      totalContributed: r.data.totalContributed ?? r.data.TotalContributed ?? 0,
+      contributions: (r.data.contributions ?? r.data.Contributions ?? []).map((c: any) => ({
+        amount: c.amount ?? c.Amount ?? 0,
+        paidAt: c.paidAt ?? c.PaidAt ?? '',
+        webhookId: c.nombaWebhookRequestId ?? c.NombaWebhookRequestId ?? '',
+      })),
+    })),
 }
 
 export const groups = {
-  list: () => apiClient.get<any[]>('/groups').then((r) => r.data.map(mapGroup)),
+  list: (search?: string) =>
+    apiClient.get<any[]>('/groups', { params: { search } }).then((r) => r.data.map(mapGroup)),
   get: (id: string) =>
     apiClient.get<any>(`/groups/${id}`).then(
       (r) =>
         ({
           ...mapGroup(r.data),
-          members: [],
-          activeCycles: [],
-          completedCycles: [],
-          pendingRequests: [],
+          members: (r.data.members ?? r.data.Members ?? []).map((m: any) => ({
+            traderId: m.traderId ?? m.TraderId ?? '',
+            traderName: m.traderName ?? m.TraderName ?? '',
+            joinedAt: m.joinedAt ?? m.JoinedAt ?? '',
+          })),
+          activeCycles: r.data.activeCycles ?? r.data.ActiveCycles ?? [],
+          completedCycles: r.data.completedCycles ?? r.data.CompletedCycles ?? [],
+          pendingRequests: (r.data.pendingRequests ?? r.data.PendingRequests ?? []).map(
+            (p: any) => ({
+              membershipId: p.membershipId ?? p.Id ?? '',
+              traderId: p.traderId ?? p.TraderId ?? '',
+              traderName: p.traderName ?? p.TraderName ?? '',
+              requestedAt: p.requestedAt ?? p.RequestedAt ?? '',
+            }),
+          ),
         }) as GroupDetail,
     ),
   create: (data: CreateGroupRequest) =>
@@ -215,6 +320,15 @@ export const groups = {
     apiClient.post(`/groups/requests/${membershipId}/approve`).then((r) => r.data),
   rejectJoin: (membershipId: string) =>
     apiClient.post(`/groups/requests/${membershipId}/reject`).then((r) => r.data),
+  getPendingRequests: (groupId: string) =>
+    apiClient.get<any[]>(`/groups/${groupId}/requests`).then((r) =>
+      r.data.map((m: any) => ({
+        membershipId: m.id ?? m.Id ?? '',
+        traderId: m.traderId ?? m.TraderId ?? '',
+        traderName: m.traderName ?? m.TraderName ?? '',
+        requestedAt: m.createdAt ?? m.CreatedAt ?? '',
+      })),
+    ),
 }
 
 export const banks = {

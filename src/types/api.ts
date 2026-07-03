@@ -18,6 +18,7 @@ export interface AuthResponse {
 export interface LoginRequest {
   email: string
   password: string
+  adminCode?: string
 }
 
 export interface RegisterRequest {
@@ -62,8 +63,9 @@ export interface SavingCycle {
   endDate: string
   status: CycleStatus
   memberCount: number
-  nextContributionDate: string
+  nextContributionDate?: string | null
   progress: number
+  groupId?: string | null
 }
 
 export interface SavingCycleDetail extends SavingCycle {
@@ -79,13 +81,10 @@ export interface SavingCycleDetail extends SavingCycle {
 
 export interface CreateCycleRequest {
   cycleName: string
-  targetAmount: number
-  frequency: ContributionFrequency
   contributionAmount: number
+  intervalDays: number
   startDate: string
   endDate: string
-  description?: string
-  groupId?: string
 }
 
 export interface CycleMember {
@@ -96,6 +95,34 @@ export interface CycleMember {
   totalContributed: number
   joinDate: string
   status: MembershipStatus
+  payoutOrder?: number
+}
+
+export interface MyCycleDetails {
+  cycleId: string
+  name: string
+  cycleType: string
+  contributionAmount: number
+  intervalDays: number
+  status: string
+  startDate: string
+  endDate: string | null
+  virtualAccountNumber: string | null
+  virtualAccountBank: string | null
+  virtualAccountName: string | null
+  payoutOrder: number
+}
+
+export interface ContributionEntry {
+  amount: number
+  paidAt: string
+  webhookId: string
+}
+
+export interface MemberContributions {
+  memberName: string
+  totalContributed: number
+  contributions: ContributionEntry[]
 }
 
 export interface ContributionLedger {
@@ -127,6 +154,8 @@ export interface CooperativeGroup {
   createdBy: string
   createdAt: string
   isActive: boolean
+  membershipStatus?: string | null
+  adminTraderId?: string
 }
 
 export interface GroupDetail extends CooperativeGroup {
@@ -137,15 +166,17 @@ export interface GroupDetail extends CooperativeGroup {
 }
 
 export interface GroupMember {
-  id: string
-  userId: string
-  fullName: string
-  email: string
-  phoneNumber: string
-  roleInGroup: string
-  totalContributed: number
+  id?: string
+  userId?: string
+  traderId?: string
+  fullName?: string
+  traderName?: string
+  email?: string
+  phoneNumber?: string
+  roleInGroup?: string
+  totalContributed?: number
   joinedAt: string
-  status: MembershipStatus
+  status?: MembershipStatus
 }
 
 export interface CreateGroupRequest {
@@ -156,9 +187,11 @@ export interface CreateGroupRequest {
 
 export interface GroupJoinRequest {
   membershipId: string
-  userId: string
-  fullName: string
-  email: string
+  userId?: string
+  traderId?: string
+  fullName?: string
+  traderName?: string
+  email?: string
   requestedAt: string
 }
 
@@ -176,6 +209,7 @@ export interface BalanceInfo {
   nextDueDate?: string
   totalGroupSavings?: number
   totalMembers?: number
+  totalGroups?: number
   systemStats?: SystemStats
 }
 

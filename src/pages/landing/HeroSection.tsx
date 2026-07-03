@@ -89,7 +89,7 @@ export function HeroSection() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.8, delay: 0.3 }}
             className="hidden lg:flex justify-center"
           >
             <div className="relative">
@@ -123,7 +123,7 @@ export function HeroSection() {
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: '78%' }}
-                        transition={{ duration: 1.5, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 1.5, delay: 0.8 }}
                         className="h-full rounded-full bg-gradient-to-r from-nomba-yellow to-nomba-yellow-dark"
                       />
                     </div>

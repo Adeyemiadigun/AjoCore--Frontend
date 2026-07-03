@@ -14,10 +14,13 @@ import { UserRole } from '@/types/enums'
 
 const TraderDashboard = lazy(() => import('@/pages/trader/DashboardPage'))
 const CyclesPage = lazy(() => import('@/pages/trader/CyclesPage'))
+const CycleDetailPage = lazy(() => import('@/pages/trader/CycleDetailPage'))
 const GroupsPage = lazy(() => import('@/pages/trader/GroupsPage'))
 const ProfilePage = lazy(() => import('@/pages/trader/ProfilePage'))
 const AdminDashboard = lazy(() => import('@/pages/admin/DashboardPage'))
+const AdminCyclesPage = lazy(() => import('@/pages/admin/AdminCyclesPage'))
 const GroupManagementPage = lazy(() => import('@/pages/admin/GroupManagementPage'))
+const GroupDetailPage = lazy(() => import('@/pages/admin/GroupDetailPage'))
 const MembersPage = lazy(() => import('@/pages/admin/MembersPage'))
 const SystemOverviewPage = lazy(() => import('@/pages/admin/SystemOverviewPage'))
 
@@ -36,6 +39,30 @@ function HomeRoute() {
   if (isLoading) return null
   if (user) return <Navigate to="/dashboard" replace />
   return <LandingPage />
+}
+
+function DashboardIndex() {
+  const { user } = useAuth()
+  if (user?.role === UserRole.CooperativeAdmin) {
+    return <AdminDashboard />
+  }
+  return <TraderDashboard />
+}
+
+function GroupsRoute() {
+  const { user } = useAuth()
+  if (user?.role === UserRole.CooperativeAdmin) {
+    return <GroupManagementPage />
+  }
+  return <GroupsPage />
+}
+
+function CyclesRoute() {
+  const { user } = useAuth()
+  if (user?.role === UserRole.CooperativeAdmin) {
+    return <AdminCyclesPage />
+  }
+  return <CyclesPage />
 }
 
 function OfflineBanner() {
@@ -83,7 +110,7 @@ export default function App() {
                   index
                   element={
                     <Suspense fallback={<RouteFallback />}>
-                      <TraderDashboard />
+                      <DashboardIndex />
                     </Suspense>
                   }
                 />
@@ -91,7 +118,15 @@ export default function App() {
                   path="cycles"
                   element={
                     <Suspense fallback={<RouteFallback />}>
-                      <CyclesPage />
+                      <CyclesRoute />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="cycles/:cycleId"
+                  element={
+                    <Suspense fallback={<RouteFallback />}>
+                      <CycleDetailPage />
                     </Suspense>
                   }
                 />
@@ -99,7 +134,15 @@ export default function App() {
                   path="groups"
                   element={
                     <Suspense fallback={<RouteFallback />}>
-                      <GroupsPage />
+                      <GroupsRoute />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="groups/:groupId"
+                  element={
+                    <Suspense fallback={<RouteFallback />}>
+                      <GroupDetailPage />
                     </Suspense>
                   }
                 />

@@ -1,6 +1,6 @@
 const GTM_ID = import.meta.env.VITE_GTM_ID ?? ''
 
-type EventParams = Record<string, string | number | boolean>
+type EventParams = Record<string, string | number | boolean | undefined>
 
 const eventQueue: { name: string; params?: EventParams }[] = []
 let gtmLoaded = false
@@ -30,7 +30,11 @@ export function trackClick(label: string, category?: string) {
 }
 
 export function trackConversion(label: string, value?: number) {
-  trackEvent('conversion', { conversion_label: label, conversion_value: value })
+  const params: EventParams = { conversion_label: label }
+  if (value !== undefined) {
+    params.conversion_value = value
+  }
+  trackEvent('conversion', params)
 }
 
 declare global {
