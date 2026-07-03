@@ -1,16 +1,34 @@
-import { useQuery } from '@tanstack/react-query'
-import { UsersThree, Plus } from '@phosphor-icons/react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { UsersThree, MagnifyingGlass, Handshake } from '@phosphor-icons/react'
 import { groups } from '@/api/endpoints'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { formatCurrency } from '@/lib/utils'
 
 export default function GroupsPage() {
+  const [activeTab, setActiveTab] = useState<'joined' | 'discover'>('joined')
+  const [searchTerm, setSearchTerm] = useState('')
+  const queryClient = useQueryClient()
+
   const { data: groupList, isLoading } = useQuery({
-    queryKey: ['groups', 'my'],
-    queryFn: groups.myGroups,
+    queryKey: ['groups', 'list', searchTerm],
+    queryFn: () => groups.list(searchTerm || undefined),
   })
+
+  const joinMutation = useMutation({
+    mutationFn: groups.join,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups', 'list'] })
+    },
+  })
+
+  const joinedGroups = groupList?.filter((g) => g.membershipStatus === 'Approved') || []
+  const discoverGroups = groupList?.filter((g) => g.membershipStatus !== 'Approved') || []
+
+  const displayList = activeTab === 'joined' ? joinedGroups : discoverGroups
 
   return (
     <div className="space-y-6">
@@ -20,13 +38,50 @@ export default function GroupsPage() {
             Cooperative Groups
           </h1>
           <p className="text-sm text-nomba-text-secondary">
-            Manage your cooperative savings groups
+            Manage and discover cooperative savings groups
           </p>
         </div>
-        <Button>
-          <Plus size={18} weight="bold" />
-          Join Group
-        </Button>
+      </div>
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-nomba-border pb-4">
+        <div className="flex items-center gap-4">
+          <button
+            className={`pb-2 text-sm font-medium transition-colors ${
+              activeTab === 'joined'
+                ? 'border-b-2 border-nomba-primary text-nomba-primary'
+                : 'text-nomba-text-secondary hover:text-nomba-text'
+            }`}
+            onClick={() => setActiveTab('joined')}
+          >
+            Joined Groups
+          </button>
+          <button
+            className={`pb-2 text-sm font-medium transition-colors ${
+              activeTab === 'discover'
+                ? 'border-b-2 border-nomba-primary text-nomba-primary'
+                : 'text-nomba-text-secondary hover:text-nomba-text'
+            }`}
+            onClick={() => setActiveTab('discover')}
+          >
+            Discover Groups
+          </button>
+        </div>
+
+        {activeTab === 'discover' && (
+          <div className="relative w-full sm:w-64">
+            <MagnifyingGlass
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-nomba-text-secondary"
+            />
+            <Input
+              type="text"
+              placeholder="Search groups..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        )}
       </div>
 
       {isLoading ? (
@@ -40,17 +95,25 @@ export default function GroupsPage() {
             </Card>
           ))}
         </div>
-      ) : groupList?.length === 0 ? (
+      ) : displayList.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <UsersThree size={40} className="mx-auto mb-2 text-nomba-text-secondary opacity-40" />
-            <p className="text-nomba-text-secondary">You haven&apos;t joined any groups yet</p>
-            <Button className="mt-4">Browse available groups</Button>
+            <p className="text-nomba-text-secondary">
+              {activeTab === 'joined'
+                ? "You haven't joined any groups yet"
+                : 'No groups found matching your search'}
+            </p>
+            {activeTab === 'joined' && (
+              <Button className="mt-4" onClick={() => setActiveTab('discover')}>
+                Browse available groups
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {groupList?.map((group) => (
+          {displayList.map((group) => (
             <Card key={group.id} hover>
               <CardContent className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -85,6 +148,28 @@ export default function GroupsPage() {
                     <p className="text-nomba-text-secondary">Goal</p>
                   </div>
                 </div>
+
+                {activeTab === 'discover' && (
+                  <div className="border-t border-nomba-border pt-4">
+                    {group.membershipStatus === 'Pending' ? (
+                      <Badge
+                        variant="default"
+                        className="w-full justify-center py-2 text-sm bg-nomba-bg text-nomba-text-secondary"
+                      >
+                        Pending Approval
+                      </Badge>
+                    ) : (
+                      <Button
+                        className="w-full"
+                        onClick={() => joinMutation.mutate(group.id)}
+                        disabled={joinMutation.isPending}
+                      >
+                        <Handshake size={18} weight="bold" />
+                        {joinMutation.isPending ? 'Requesting...' : 'Request to Join'}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

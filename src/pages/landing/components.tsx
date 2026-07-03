@@ -14,12 +14,12 @@ export const containerVariants = {
 
 export const itemVariants = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
 export const fadeUp = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 }
 
 export function Blob({ className }: { className: string }) {
@@ -122,7 +122,7 @@ export function AnimatedAccordion({ items }: { items: { q: string; a: string }[]
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: i * 0.08 }}
         >
           <button
             onClick={() => setOpenIndex(openIndex === i ? null : i)}
@@ -133,7 +133,7 @@ export function AnimatedAccordion({ items }: { items: { q: string; a: string }[]
             </span>
             <motion.div
               animate={{ rotate: openIndex === i ? 180 : 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.3 }}
             >
               <CaretDown className="w-5 h-5 text-nomba-yellow shrink-0" />
             </motion.div>
@@ -144,7 +144,7 @@ export function AnimatedAccordion({ items }: { items: { q: string; a: string }[]
               gridTemplateRows: openIndex === i ? '1fr' : '0fr',
               opacity: openIndex === i ? 1 : 0,
             }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.35 }}
             className="grid"
             style={{ minHeight: 0 }}
           >
