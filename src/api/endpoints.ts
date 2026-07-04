@@ -91,6 +91,7 @@ function mapGroup(be: any): CooperativeGroup {
     createdAt: be.CreatedAt ?? be.createdAt ?? '',
     isActive: be.IsActive ?? be.isActive ?? true,
     membershipStatus: be.MembershipStatus ?? be.membershipStatus ?? null,
+    adminTraderId: be.AdminTraderId ?? be.adminTraderId ?? '',
   }
 }
 
