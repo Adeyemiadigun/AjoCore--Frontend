@@ -25,8 +25,10 @@ export default function GroupsPage() {
     },
   })
 
-  const joinedGroups = groupList?.filter((g) => g.membershipStatus === 'Approved') || []
-  const discoverGroups = groupList?.filter((g) => g.membershipStatus !== 'Approved') || []
+  const joinedGroups =
+    groupList?.filter((g) => g.membershipStatus?.toLowerCase() === 'approved') || []
+  const discoverGroups =
+    groupList?.filter((g) => g.membershipStatus?.toLowerCase() !== 'approved') || []
 
   const displayList = activeTab === 'joined' ? joinedGroups : discoverGroups
 

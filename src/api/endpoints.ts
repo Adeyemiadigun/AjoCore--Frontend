@@ -338,6 +338,8 @@ export const groups = {
       .then((r) => r.data.inviteLink),
   addMembers: (groupId: string, members: any[]) =>
     apiClient.post(`/groups/${groupId}/members/add`, members).then((r) => r.data),
+  getMembers: (groupId: string) =>
+    apiClient.get<any[]>(`/groups/${groupId}/members`).then((r) => r.data),
 }
 
 export const banks = {
