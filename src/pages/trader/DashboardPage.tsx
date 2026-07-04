@@ -35,10 +35,12 @@ export default function TraderDashboard() {
     queryFn: cycles.myAll,
   })
 
-  const { data: myGroups, isLoading: isLoadingGroups } = useQuery({
+  const { data: allGroups, isLoading: isLoadingGroups } = useQuery({
     queryKey: ['groups', 'list'],
     queryFn: () => groups.list(),
   })
+
+  const myGroups = allGroups?.filter((g) => g.membershipStatus?.toLowerCase() === 'approved') || []
 
   const recentCycles = myCycles?.slice(0, 3) || []
   const hasActiveCycles = myCycles?.some((c: any) => c.status === CycleStatus.Active) || false

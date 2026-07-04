@@ -47,10 +47,12 @@ export default function CyclesPage() {
     queryFn: cycles.myAll,
   })
 
-  const { data: myGroups } = useQuery({
+  const { data: allGroups } = useQuery({
     queryKey: ['groups'],
     queryFn: () => groups.list(),
   })
+
+  const myGroups = allGroups?.filter((g) => g.membershipStatus?.toLowerCase() === 'approved') || []
 
   const { data: allCycles } = useQuery({
     queryKey: ['cycles'],
