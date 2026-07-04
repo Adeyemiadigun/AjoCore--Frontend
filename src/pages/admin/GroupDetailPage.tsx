@@ -13,9 +13,7 @@ import {
 import { groups } from '@/api/endpoints'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Modal } from '@/components/ui/Modal'
+import { extractApiError } from '@/lib/api-utils'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 
 export default function GroupDetailPage() {
@@ -51,19 +49,42 @@ export default function GroupDetailPage() {
   })
 
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
+  const [memberError, setMemberError] = useState('')
   const [newMemberForm, setNewMemberForm] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phoneNumber: '',
+    dateOfBirth: '',
+    payoutAccountNumber: '',
+    payoutBankName: '',
+    payoutAccountName: '',
   })
+
+  const resetForm = () => {
+    setNewMemberForm({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      dateOfBirth: '',
+      payoutAccountNumber: '',
+      payoutBankName: '',
+      payoutAccountName: '',
+    })
+    setMemberError('')
+  }
 
   const addMemberMutation = useMutation({
     mutationFn: (data: typeof newMemberForm) => groups.addMembers(groupId!, [data]),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] })
       setIsAddMemberModalOpen(false)
-      setNewMemberForm({ firstName: '', lastName: '', email: '', phoneNumber: '' })
+      resetForm()
+      alert('Member added successfully!')
+    },
+    onError: (err) => {
+      setMemberError(extractApiError(err, 'Failed to add member.'))
     },
   })
 
@@ -85,6 +106,7 @@ export default function GroupDetailPage() {
 
   const handleAddMemberSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setMemberError('')
     addMemberMutation.mutate(newMemberForm)
   }
 
@@ -293,41 +315,105 @@ export default function GroupDetailPage() {
         onClose={() => setIsAddMemberModalOpen(false)}
         title="Add Member"
       >
-        <form onSubmit={handleAddMemberSubmit} className="space-y-4">
+        <form
+          onSubmit={handleAddMemberSubmit}
+          className="space-y-4 max-h-[70vh] overflow-y-auto pr-2"
+        >
+          {memberError && (
+            <div className="rounded-[var(--radius-md)] bg-nomba-error-bg px-3 py-2 text-sm text-nomba-error">
+              {memberError}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-nomba-text">First Name</label>
+              <Input
+                value={newMemberForm.firstName}
+                onChange={(e) => setNewMemberForm({ ...newMemberForm, firstName: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-nomba-text">Last Name</label>
+              <Input
+                value={newMemberForm.lastName}
+                onChange={(e) => setNewMemberForm({ ...newMemberForm, lastName: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-nomba-text">Email</label>
+              <Input
+                type="email"
+                value={newMemberForm.email}
+                onChange={(e) => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-nomba-text">Phone Number</label>
+              <Input
+                value={newMemberForm.phoneNumber}
+                onChange={(e) =>
+                  setNewMemberForm({ ...newMemberForm, phoneNumber: e.target.value })
+                }
+                required
+              />
+            </div>
+          </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-nomba-text">First Name</label>
+            <label className="text-sm font-medium text-nomba-text">Date of Birth</label>
             <Input
-              value={newMemberForm.firstName}
-              onChange={(e) => setNewMemberForm({ ...newMemberForm, firstName: e.target.value })}
+              type="date"
+              value={newMemberForm.dateOfBirth}
+              onChange={(e) => setNewMemberForm({ ...newMemberForm, dateOfBirth: e.target.value })}
               required
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-nomba-text">Last Name</label>
-            <Input
-              value={newMemberForm.lastName}
-              onChange={(e) => setNewMemberForm({ ...newMemberForm, lastName: e.target.value })}
-              required
-            />
+
+          <div className="pt-2">
+            <h4 className="text-sm font-semibold text-nomba-text mb-2">
+              Payout Details (Optional)
+            </h4>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-nomba-text">Bank Name</label>
+                <Input
+                  value={newMemberForm.payoutBankName}
+                  onChange={(e) =>
+                    setNewMemberForm({ ...newMemberForm, payoutBankName: e.target.value })
+                  }
+                  placeholder="e.g. GTBank"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-nomba-text">Account Number</label>
+                  <Input
+                    value={newMemberForm.payoutAccountNumber}
+                    onChange={(e) =>
+                      setNewMemberForm({ ...newMemberForm, payoutAccountNumber: e.target.value })
+                    }
+                    placeholder="10 digits"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-nomba-text">Account Name</label>
+                  <Input
+                    value={newMemberForm.payoutAccountName}
+                    onChange={(e) =>
+                      setNewMemberForm({ ...newMemberForm, payoutAccountName: e.target.value })
+                    }
+                    placeholder="Account holder name"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-nomba-text">Email</label>
-            <Input
-              type="email"
-              value={newMemberForm.email}
-              onChange={(e) => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-nomba-text">Phone Number</label>
-            <Input
-              value={newMemberForm.phoneNumber}
-              onChange={(e) => setNewMemberForm({ ...newMemberForm, phoneNumber: e.target.value })}
-              required
-            />
-          </div>
-          <div className="mt-6 flex gap-3">
+
+          <div className="mt-6 flex gap-3 pt-4 border-t border-nomba-border">
             <Button
               type="button"
               variant="outline"

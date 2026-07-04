@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { PiggyBank, Eye, EyeSlash } from '@phosphor-icons/react'
 import { Card } from '@/components/ui/Card'
@@ -9,6 +9,7 @@ import { extractApiError } from '@/lib/api-utils'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, adminLogin, isLoading, isAuthenticated } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,7 +18,9 @@ export default function LoginPage() {
   const [adminCode, setAdminCode] = useState('')
   const [error, setError] = useState('')
 
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  const from = location.state?.from?.pathname + location.state?.from?.search || '/dashboard'
+
+  if (isAuthenticated) return <Navigate to={from} replace />
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,7 +31,7 @@ export default function LoginPage() {
       } else {
         await login({ email, password })
       }
-      navigate('/dashboard', { replace: true })
+      navigate(from, { replace: true })
     } catch (err: unknown) {
       setError(extractApiError(err, 'Login failed.'))
     }

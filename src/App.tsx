@@ -25,6 +25,7 @@ const GroupManagementPage = lazy(() => import('@/pages/admin/GroupManagementPage
 const GroupDetailPage = lazy(() => import('@/pages/admin/GroupDetailPage'))
 const MembersPage = lazy(() => import('@/pages/admin/MembersPage'))
 const SystemOverviewPage = lazy(() => import('@/pages/admin/SystemOverviewPage'))
+const JoinGroupPage = lazy(() => import('@/pages/trader/JoinGroupPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +101,17 @@ export default function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/register/success" element={<RegisterSuccessPage />} />
+
+              <Route
+                path="/groups/join"
+                element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <JoinGroupPage />
+                    </Suspense>
+                  </ProtectedRoute>
+                }
+              />
 
               <Route
                 path="/dashboard"
