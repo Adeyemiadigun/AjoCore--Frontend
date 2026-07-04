@@ -36,14 +36,20 @@ export default function AdminDashboard() {
 
   const managedGroup = managedGroups.find((g) => g.id === selectedGroupId) || managedGroups[0]
 
-  // Then fetch the balance for that specific group
   const { data: balance, isLoading: isLoadingBalance } = useQuery({
     queryKey: ['balance', 'admin', managedGroup?.id],
     queryFn: () => balances.admin(managedGroup!.id),
     enabled: !!managedGroup?.id,
   })
 
-  const isLoading = isLoadingGroups || (!!managedGroup?.id && isLoadingBalance)
+  const { data: pendingRequests, isLoading: isLoadingRequests } = useQuery({
+    queryKey: ['groups', 'requests', managedGroup?.id],
+    queryFn: () => groups.getPendingRequests(managedGroup!.id),
+    enabled: !!managedGroup?.id,
+  })
+
+  const isLoading =
+    isLoadingGroups || (!!managedGroup?.id && (isLoadingBalance || isLoadingRequests))
 
   const stats = [
     {
@@ -72,7 +78,7 @@ export default function AdminDashboard() {
     },
     {
       label: 'Pending Requests',
-      value: managedGroup?.memberCount ?? 0, // Just a placeholder stat for now
+      value: pendingRequests?.length ?? 0,
       icon: Handshake,
       color: 'text-nomba-warning',
       bg: 'bg-nomba-warning-bg',
