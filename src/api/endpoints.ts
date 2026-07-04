@@ -246,8 +246,10 @@ export const cycles = {
     cycleType: string
     contributionAmount: number
     intervalDays: number
+    durationInIntervals?: number
     cooperativeGroupId: string
   }) => apiClient.post<any>('/saving-cycles', data).then((r) => r.data),
+  startCycle: (id: string) => apiClient.post(`/saving-cycles/${id}/start`).then((r) => r.data),
   liquidate: (id: string) =>
     apiClient.post(`/saving-cycles/${id}/liquidate-early`).then((r) => r.data),
   joinCycle: (cycleId: string) =>

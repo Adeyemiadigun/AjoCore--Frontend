@@ -21,6 +21,7 @@ export default function AdminCyclesPage() {
     cycleType: 'Rosca',
     contributionAmount: '',
     intervalDays: '30',
+    durationInIntervals: '',
     cooperativeGroupId: '',
   })
 
@@ -55,19 +56,30 @@ export default function AdminCyclesPage() {
         cycleType: 'Rosca',
         contributionAmount: '',
         intervalDays: '30',
+        durationInIntervals: '',
         cooperativeGroupId: myGroups[0]?.id || '',
       })
+    },
+  })
+
+  const startMutation = useMutation({
+    mutationFn: cycles.startCycle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cycles'] })
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name || !formData.cooperativeGroupId || !formData.contributionAmount) return
+
     createMutation.mutate({
       name: formData.name,
       cycleType: formData.cycleType,
       contributionAmount: Number(formData.contributionAmount),
       intervalDays: Number(formData.intervalDays),
+      durationInIntervals:
+        formData.cycleType === 'Asca' ? Number(formData.durationInIntervals) : undefined,
       cooperativeGroupId: formData.cooperativeGroupId,
     })
   }
@@ -239,6 +251,25 @@ export default function AdminCyclesPage() {
               </select>
             </div>
           </div>
+
+          {formData.cycleType === 'Asca' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-nomba-text">
+                Duration (Total Intervals) *
+              </label>
+              <Input
+                type="number"
+                min="1"
+                placeholder="e.g. 12"
+                value={formData.durationInIntervals}
+                onChange={(e) => setFormData({ ...formData, durationInIntervals: e.target.value })}
+                required
+              />
+              <p className="text-xs text-nomba-text-secondary">
+                Number of times members will contribute before the cycle ends.
+              </p>
+            </div>
+          )}
 
           {createMutation.isError && (
             <p className="text-sm text-nomba-error">
