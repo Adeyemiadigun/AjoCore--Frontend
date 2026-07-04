@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { PiggyBank } from '@phosphor-icons/react'
+import { PiggyBank, Eye, EyeSlash } from '@phosphor-icons/react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const { login, adminLogin, isLoading, isAuthenticated } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminCode, setAdminCode] = useState('')
   const [error, setError] = useState('')
@@ -60,11 +61,21 @@ export default function LoginPage() {
             <Input
               id="password"
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
+              suffix={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-nomba-text-secondary hover:text-nomba-text focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeSlash className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              }
             />
             <label className="flex items-center gap-2 cursor-pointer">
               <input
