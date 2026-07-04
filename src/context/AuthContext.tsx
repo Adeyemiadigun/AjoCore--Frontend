@@ -16,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
   login: (data: LoginRequest) => Promise<void>
-  register: (data: RegisterRequest) => Promise<void>
+  register: (data: RegisterRequest) => Promise<string>
   adminLogin: (data: LoginRequest) => Promise<void>
   logout: () => void
 }
@@ -64,11 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(mapResponse(response))
   }, [])
 
-  const register = useCallback(async (data: RegisterRequest) => {
-    const response = await authApi.register(data)
-    persistAuth(response)
-    setToken(response.token)
-    setUser(mapResponse(response))
+  const register = useCallback(async (data: RegisterRequest): Promise<string> => {
+    const message = await authApi.register(data)
+    return message
   }, [])
 
   const adminLogin = useCallback(async (data: LoginRequest) => {

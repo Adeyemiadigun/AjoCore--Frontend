@@ -98,11 +98,13 @@ export const auth = {
   login: (data: LoginRequest) =>
     apiClient.post<AuthResponse>('/auth/login', data).then((r) => r.data),
   register: async (data: RegisterRequest) => {
-    await apiClient.post('/auth/register', data)
-    return auth.login({ email: data.email, password: data.password })
+    const res = await apiClient.post<{ message: string }>('/auth/register', data)
+    return res.data.message
   },
   adminLogin: (data: LoginRequest) =>
     apiClient.post<AuthResponse>('/auth/admin-login', data).then((r) => r.data),
+  verifyEmail: (data: { email: string; token: string }) =>
+    apiClient.post<{ success: boolean }>('/auth/verify-email', data).then((r) => r.data),
   refreshToken: (token: string, refreshToken: string) =>
     apiClient.post<AuthResponse>('/auth/refresh', { token, refreshToken }).then((r) => r.data),
   profile: async () => {

@@ -9,6 +9,8 @@ import AppLayout from '@/components/layout/AppLayout'
 import LoginPage from '@/pages/auth/LoginPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
+import VerifyEmailPage from '@/pages/auth/VerifyEmailPage'
+import RegisterSuccessPage from '@/pages/auth/RegisterSuccessPage'
 import LandingPage from '@/pages/landing'
 import { UserRole } from '@/types/enums'
 
@@ -96,6 +98,8 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/register/success" element={<RegisterSuccessPage />} />
 
               <Route
                 path="/dashboard"

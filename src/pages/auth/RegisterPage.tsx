@@ -34,7 +34,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await register(form)
-      navigate('/dashboard', { replace: true })
+      navigate('/register/success', { state: { email: form.email } })
     } catch (err: unknown) {
       setError(extractApiError(err, 'Registration failed'))
     } finally {
