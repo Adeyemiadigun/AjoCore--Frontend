@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -6,11 +7,15 @@ import {
   ArrowsCounterClockwise,
   CheckCircle,
   XCircle,
+  Copy,
+  Plus,
 } from '@phosphor-icons/react'
 import { groups } from '@/api/endpoints'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Modal } from '@/components/ui/Modal'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 
 export default function GroupDetailPage() {
@@ -44,6 +49,44 @@ export default function GroupDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['groups', 'requests', groupId] })
     },
   })
+
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
+  const [newMemberForm, setNewMemberForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+  })
+
+  const addMemberMutation = useMutation({
+    mutationFn: (data: typeof newMemberForm) => groups.addMembers(groupId!, [data]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] })
+      setIsAddMemberModalOpen(false)
+      setNewMemberForm({ firstName: '', lastName: '', email: '', phoneNumber: '' })
+    },
+  })
+
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false)
+  const handleCopyInviteLink = async () => {
+    try {
+      setIsGeneratingLink(true)
+      // Use Vite env var if available (Vercel), otherwise fallback to origin
+      const baseUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
+      const link = await groups.generateInviteLink(groupId!, baseUrl)
+      await navigator.clipboard.writeText(link)
+      alert('Invite link copied to clipboard!')
+    } catch (err) {
+      alert('Failed to generate invite link')
+    } finally {
+      setIsGeneratingLink(false)
+    }
+  }
+
+  const handleAddMemberSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    addMemberMutation.mutate(newMemberForm)
+  }
 
   if (isLoading) {
     return (
@@ -115,8 +158,23 @@ export default function GroupDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Members Table */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle>Group Members</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyInviteLink}
+                  disabled={isGeneratingLink}
+                >
+                  <Copy size={16} className="mr-2" />
+                  {isGeneratingLink ? 'Generating...' : 'Invite Link'}
+                </Button>
+                <Button size="sm" onClick={() => setIsAddMemberModalOpen(true)}>
+                  <Plus size={16} className="mr-2" />
+                  Add Member
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {group.members.length === 0 ? (
@@ -229,6 +287,62 @@ export default function GroupDetailPage() {
           </Card>
         </div>
       </div>
+
+      <Modal
+        open={isAddMemberModalOpen}
+        onClose={() => setIsAddMemberModalOpen(false)}
+        title="Add Member"
+      >
+        <form onSubmit={handleAddMemberSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-nomba-text">First Name</label>
+            <Input
+              value={newMemberForm.firstName}
+              onChange={(e) => setNewMemberForm({ ...newMemberForm, firstName: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-nomba-text">Last Name</label>
+            <Input
+              value={newMemberForm.lastName}
+              onChange={(e) => setNewMemberForm({ ...newMemberForm, lastName: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-nomba-text">Email</label>
+            <Input
+              type="email"
+              value={newMemberForm.email}
+              onChange={(e) => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-nomba-text">Phone Number</label>
+            <Input
+              value={newMemberForm.phoneNumber}
+              onChange={(e) => setNewMemberForm({ ...newMemberForm, phoneNumber: e.target.value })}
+              required
+            />
+          </div>
+          <div className="mt-6 flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsAddMemberModalOpen(false)}
+              disabled={addMemberMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1" loading={addMemberMutation.isPending}>
+              Add Member
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
