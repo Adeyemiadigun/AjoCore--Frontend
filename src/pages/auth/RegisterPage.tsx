@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +22,7 @@ export default function RegisterPage() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -86,10 +88,20 @@ export default function RegisterPage() {
           <Input
             id="reg-password"
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={form.password}
             onChange={(e) => update('password', e.target.value)}
             required
+            suffix={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-nomba-text-secondary hover:text-nomba-text focus:outline-none"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeSlash className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            }
           />
           <Input
             id="dob"
