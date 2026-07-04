@@ -20,8 +20,8 @@ import { CycleType, CycleStatus, ContributionFrequency, UserRole } from '@/types
 
 const TYPE_MAP: Record<string, CycleType> = {
   Personal: CycleType.Individual,
-  Rosca: CycleType.Group,
-  Asca: CycleType.Group,
+  Rosca: CycleType.Rosca,
+  Asca: CycleType.Asca,
   Individual: CycleType.Individual,
   Group: CycleType.Group,
 }
