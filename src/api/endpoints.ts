@@ -332,6 +332,12 @@ export const groups = {
         requestedAt: m.createdAt ?? m.CreatedAt ?? '',
       })),
     ),
+  generateInviteLink: (groupId: string, baseUrl: string) =>
+    apiClient
+      .get<any>(`/groups/${groupId}/invite-link`, { params: { baseUrl } })
+      .then((r) => r.data.inviteLink),
+  addMembers: (groupId: string, members: any[]) =>
+    apiClient.post(`/groups/${groupId}/members/add`, members).then((r) => r.data),
 }
 
 export const banks = {
