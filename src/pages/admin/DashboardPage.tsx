@@ -28,10 +28,9 @@ export default function AdminDashboard() {
 
   const managedGroups = groupList?.filter((g) => g.adminTraderId === user?.id) || []
 
-  // Set default selected group when data loads
   useEffect(() => {
     if (managedGroups.length > 0 && !selectedGroupId) {
-      setSelectedGroupId(managedGroups[0].id)
+      setSelectedGroupId(managedGroups[0]?.id || '')
     }
   }, [managedGroups, selectedGroupId])
 
