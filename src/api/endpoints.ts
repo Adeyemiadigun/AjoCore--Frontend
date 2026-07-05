@@ -188,7 +188,7 @@ export const cycles = {
             frequency: ContributionFrequency.Monthly,
             startDate: '',
             endDate: '',
-            status: CycleStatus.Active,
+            status: STATUS_MAP[cb.CycleStatus ?? cb.cycleStatus ?? ''] ?? CycleStatus.Active,
             memberCount: 1,
             nextContributionDate: null,
             progress:
