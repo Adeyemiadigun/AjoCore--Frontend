@@ -36,7 +36,11 @@ const systemLinks = [
   { to: '/dashboard/settings', label: 'Settings', icon: GearSix },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void
+}
+
+export function Sidebar({ onClose }: SidebarProps = {}) {
   const { user, logout } = useAuth()
 
   const links =
@@ -61,6 +65,7 @@ export function Sidebar() {
             key={link.to}
             to={link.to}
             end={link.to === '/dashboard'}
+            onClick={onClose}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-nomba-yellow focus-visible:outline-none',

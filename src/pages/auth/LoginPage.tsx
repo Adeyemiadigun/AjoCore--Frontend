@@ -18,7 +18,11 @@ export default function LoginPage() {
   const [adminCode, setAdminCode] = useState('')
   const [error, setError] = useState('')
 
-  const from = location.state?.from?.pathname + location.state?.from?.search || '/dashboard'
+  const fromPath = location.state?.from?.pathname
+  const fromSearch = location.state?.from?.search || ''
+
+  // Only redirect to saved URL if it's an invite link to prevent unexpected redirects
+  const from = fromPath?.startsWith('/join-group') ? fromPath + fromSearch : '/dashboard'
 
   if (isAuthenticated) return <Navigate to={from} replace />
 
@@ -110,7 +114,11 @@ export default function LoginPage() {
           </form>
           <p className="text-center text-sm text-nomba-text-secondary mt-6">
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="font-semibold text-nomba-yellow-dark hover:underline">
+            <Link
+              to="/register"
+              state={{ from: location.state?.from }}
+              className="font-semibold text-nomba-yellow-dark hover:underline"
+            >
               Sign up
             </Link>
           </p>

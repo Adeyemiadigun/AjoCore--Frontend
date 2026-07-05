@@ -21,8 +21,8 @@ export default function AppLayout() {
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
-          <div className="relative z-[var(--z-nav-overlay)] h-full">
-            <Sidebar />
+          <div className="relative z-[var(--z-nav-overlay)] h-full w-64">
+            <Sidebar onClose={() => setSidebarOpen(false)} />
           </div>
         </div>
       )}
