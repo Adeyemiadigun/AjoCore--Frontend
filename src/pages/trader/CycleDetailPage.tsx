@@ -71,6 +71,20 @@ export default function CycleDetailPage() {
     },
   })
 
+  const approveMutation = useMutation({
+    mutationFn: (memberId: string) => cycles.approveMember({ cycleId: cycleId!, memberId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cycle-full', cycleId] })
+    },
+  })
+
+  const rejectMutation = useMutation({
+    mutationFn: (memberId: string) => cycles.rejectMember({ cycleId: cycleId!, memberId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cycle-full', cycleId] })
+    },
+  })
+
   const handleCopy = () => {
     if (cycleDetails?.virtualAccountNumber) {
       navigator.clipboard.writeText(cycleDetails.virtualAccountNumber)
@@ -264,6 +278,7 @@ export default function CycleDetailPage() {
                           )}
                           <th className="py-3 font-medium">Total Contributed</th>
                           <th className="py-3 font-medium">Status</th>
+                          <th className="py-3 font-medium text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-nomba-border">
@@ -315,7 +330,36 @@ export default function CycleDetailPage() {
                                 {formatCurrency(member.totalContributed)}
                               </td>
                               <td className="py-3">
-                                <Badge variant="default">{member.status}</Badge>
+                                {member.approvalStatus === 'Pending' ? (
+                                  <Badge variant="warning">Pending Approval</Badge>
+                                ) : member.approvalStatus === 'Rejected' ? (
+                                  <Badge variant="error">Rejected</Badge>
+                                ) : (
+                                  <Badge variant="default">{member.status}</Badge>
+                                )}
+                              </td>
+                              <td className="py-3 text-right space-x-2">
+                                {cycleDetails.status === CycleStatus.Pending &&
+                                  member.approvalStatus === 'Pending' && (
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        size="sm"
+                                        onClick={() => approveMutation.mutate(member.id)}
+                                        loading={approveMutation.isPending}
+                                      >
+                                        Approve
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-red-500 border-red-500 hover:bg-red-50"
+                                        onClick={() => rejectMutation.mutate(member.id)}
+                                        loading={rejectMutation.isPending}
+                                      >
+                                        Reject
+                                      </Button>
+                                    </div>
+                                  )}
                               </td>
                             </tr>
                           )

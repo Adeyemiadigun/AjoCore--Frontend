@@ -95,6 +95,7 @@ export interface CycleMember {
   totalContributed: number
   joinDate: string
   status: MembershipStatus
+  approvalStatus?: string
   payoutOrder?: number
 }
 

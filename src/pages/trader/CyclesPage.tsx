@@ -363,7 +363,11 @@ export default function CyclesPage() {
                           onClick={() => joinMutation.mutate(c.id)}
                           disabled={joinMutation.isPending}
                         >
-                          {joinMutation.isPending ? <Spinner className="animate-spin" /> : 'Join'}
+                          {joinMutation.isPending ? (
+                            <Spinner className="animate-spin" />
+                          ) : (
+                            'Request to Join'
+                          )}
                         </Button>
                       </div>
                     ))
