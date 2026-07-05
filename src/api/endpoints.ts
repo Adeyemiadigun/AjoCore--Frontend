@@ -225,6 +225,7 @@ export const cycles = {
             payoutOrder: m.payoutOrder ?? m.PayoutOrder ?? 0,
             joinDate: m.joinedAt ?? m.JoinedAt ?? '',
             status: m.status ?? m.Status ?? '',
+            approvalStatus: m.approvalStatus ?? m.ApprovalStatus ?? 'Pending',
           })) as CycleMember[],
           totalContributions: r.data.totalContributions ?? 0,
           totalPayouts: r.data.totalPayouts ?? 0,
@@ -254,6 +255,14 @@ export const cycles = {
     apiClient.post(`/saving-cycles/${id}/liquidate-early`).then((r) => r.data),
   joinCycle: (cycleId: string) =>
     apiClient.post<any>(`/saving-cycles/${cycleId}/join`).then((r) => r.data),
+  approveMember: (data: { cycleId: string; memberId: string }) =>
+    apiClient
+      .post(`/saving-cycles/${data.cycleId}/members/${data.memberId}/approve`)
+      .then((r) => r.data),
+  rejectMember: (data: { cycleId: string; memberId: string }) =>
+    apiClient
+      .post(`/saving-cycles/${data.cycleId}/members/${data.memberId}/reject`)
+      .then((r) => r.data),
   start: (id: string) => apiClient.post(`/saving-cycles/${id}/start`).then((r) => r.data),
   reorderMembers: (data: { id: string; members: { memberId: string; payoutOrder: number }[] }) =>
     apiClient.post(`/saving-cycles/${data.id}/members/reorder`, data.members).then((r) => r.data),
