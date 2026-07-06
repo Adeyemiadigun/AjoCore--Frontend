@@ -13,12 +13,14 @@ import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { WithdrawFundsModal } from '@/components/WithdrawFundsModal'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
 
   // First fetch all groups to find the ones managed by this admin
   const { data: groupList, isLoading: isLoadingGroups } = useQuery({
@@ -42,6 +44,16 @@ export default function AdminDashboard() {
     enabled: !!managedGroup?.id,
   })
 
+  // NEW: Fetch actual Nomba subaccount wallet balance
+  const {
+    data: nombaBalance,
+    isLoading: isLoadingNombaBalance,
+    refetch: refetchNombaBalance,
+  } = useQuery({
+    queryKey: ['balance', 'nomba'],
+    queryFn: () => balances.nombaWallet(),
+  })
+
   const { data: pendingRequests, isLoading: isLoadingRequests } = useQuery({
     queryKey: ['groups', 'requests', managedGroup?.id],
     queryFn: () => groups.getPendingRequests(managedGroup!.id),
@@ -49,16 +61,18 @@ export default function AdminDashboard() {
   })
 
   const isLoading =
-    isLoadingGroups || (!!managedGroup?.id && (isLoadingBalance || isLoadingRequests))
+    isLoadingGroups ||
+    (!!managedGroup?.id && (isLoadingBalance || isLoadingRequests)) ||
+    isLoadingNombaBalance
 
   const stats = [
     {
-      label: 'Total Members',
-      value: balance?.totalMembers ?? 0,
-      icon: UsersThree,
-      color: 'text-nomba-info',
-      bg: 'bg-nomba-info-bg',
-      isCurrency: false,
+      label: 'Nomba Wallet Balance',
+      value: nombaBalance?.balance ?? 0,
+      icon: PiggyBank,
+      color: 'text-nomba-yellow',
+      bg: 'bg-nomba-yellow/10',
+      isCurrency: true,
     },
     {
       label: 'Total Group Savings',
@@ -67,6 +81,14 @@ export default function AdminDashboard() {
       color: 'text-nomba-success',
       bg: 'bg-nomba-success-bg',
       isCurrency: true,
+    },
+    {
+      label: 'Total Members',
+      value: balance?.totalMembers ?? 0,
+      icon: UsersThree,
+      color: 'text-nomba-info',
+      bg: 'bg-nomba-info-bg',
+      isCurrency: false,
     },
     {
       label: 'Active Cycles',
@@ -188,12 +210,27 @@ export default function AdminDashboard() {
                     <UsersThree size={20} className="text-nomba-yellow-dark" />
                     View members and requests
                   </button>
+                  <button
+                    onClick={() => setIsWithdrawModalOpen(true)}
+                    className="w-full flex items-center gap-3 rounded-[var(--radius-md)] border-2 border-nomba-border p-3 text-sm font-medium text-nomba-text transition-colors hover:border-nomba-yellow hover:bg-nomba-yellow/5 focus-visible:ring-2 focus-visible:ring-nomba-yellow focus-visible:outline-none"
+                  >
+                    <PiggyBank size={20} className="text-nomba-yellow-dark" />
+                    Withdraw unrecorded funds
+                  </button>
                 </div>
               </CardContent>
             </Card>
           </div>
         </>
       )}
+
+      <WithdrawFundsModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        onSuccess={() => {
+          refetchNombaBalance()
+        }}
+      />
     </div>
   )
 }

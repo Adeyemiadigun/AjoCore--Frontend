@@ -170,6 +170,19 @@ export const balances = {
           totalMembers: 0,
         }) as BalanceInfo,
     ),
+  nombaWallet: () =>
+    apiClient.get<any>('/balances/nomba-wallet').then((r) => ({
+      balance: r.data.balance ?? r.data.Balance ?? 0,
+      currency: r.data.currency ?? r.data.Currency ?? 'NGN',
+    })),
+  withdrawNombaFunds: (data: {
+    amount: number
+    accountNumber: string
+    bankCode: string
+    accountName: string
+    senderName: string
+    merchantTxRef: string
+  }) => apiClient.post<any>('/balances/withdraw-nomba-funds', data).then((r) => r.data),
 }
 
 export const cycles = {
