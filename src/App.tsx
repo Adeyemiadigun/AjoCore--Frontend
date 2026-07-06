@@ -46,6 +46,9 @@ function HomeRoute() {
 
 function DashboardIndex() {
   const { user } = useAuth()
+  if (user?.role === UserRole.SystemAdmin) {
+    return <SystemOverviewPage />
+  }
   if (user?.role === UserRole.CooperativeAdmin) {
     return <AdminDashboard />
   }

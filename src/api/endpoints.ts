@@ -162,19 +162,7 @@ export const balances = {
           totalGroups: r.data.totalGroups ?? r.data.TotalGroups ?? 0,
         }) as BalanceInfo,
     ),
-  system: () =>
-    apiClient.get<any>('/balances/system').then(
-      (r) =>
-        ({
-          walletBalance: r.data.systemWalletBalance ?? 0,
-          totalSavings: r.data.totalContributions ?? 0,
-          activeCycles: 0,
-          pendingContributions: 0,
-          totalGroupSavings: r.data.totalContributions ?? 0,
-          totalGroups: 0,
-          totalMembers: 0,
-        }) as BalanceInfo,
-    ),
+  system: () => apiClient.get<any>('/balances/system').then((r) => r.data),
   nombaWallet: () =>
     apiClient.get<any>('/balances/nomba-wallet').then((r) => ({
       balance: r.data.balance ?? r.data.Balance ?? 0,
