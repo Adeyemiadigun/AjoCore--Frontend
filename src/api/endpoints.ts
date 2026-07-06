@@ -103,7 +103,12 @@ export const auth = {
     return res.data.message
   },
   adminLogin: (data: LoginRequest) =>
-    apiClient.post<AuthResponse>('/auth/admin-login', data).then((r) => r.data),
+    apiClient
+      .post<AuthResponse>('/auth/admin-login', {
+        emailOrUsername: data.email,
+        password: data.password,
+      })
+      .then((r) => r.data),
   verifyEmail: (data: { email: string; token: string }) =>
     apiClient.post<{ success: boolean }>('/auth/verify-email', data).then((r) => r.data),
   refreshToken: (token: string, refreshToken: string) =>
