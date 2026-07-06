@@ -132,10 +132,6 @@ export const auth = {
       phoneNumber: data.phoneNumber,
     }
     if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth
-    if (data.bvn) payload.bvn = data.bvn
-    if (data.payoutAccountNumber) payload.payoutAccountNumber = data.payoutAccountNumber
-    if (data.payoutBankName) payload.payoutBankName = data.payoutBankName
-    if (data.payoutAccountName) payload.payoutAccountName = data.payoutAccountName
 
     const stored = localStorage.getItem('ajocore_user')
     const role: UserRole = stored ? (JSON.parse(stored) as any).role : 'Trader'
@@ -146,6 +142,18 @@ export const auth = {
           ? '/profile/cooperative-admin'
           : '/profile/trader'
     const res = await apiClient.put<{ success: boolean; data: any }>(endpoint, payload)
+    return mapProfile(res.data.data)
+  },
+  updateBvn: async (bvn: string) => {
+    const res = await apiClient.put<{ success: boolean; data: any }>('/profile/trader/bvn', { bvn })
+    return mapProfile(res.data.data)
+  },
+  updatePayout: async (data: {
+    payoutAccountNumber: string
+    payoutBankName: string
+    payoutAccountName: string
+  }) => {
+    const res = await apiClient.put<{ success: boolean; data: any }>('/profile/trader/payout', data)
     return mapProfile(res.data.data)
   },
 }

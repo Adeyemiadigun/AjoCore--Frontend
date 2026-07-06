@@ -21,3 +21,29 @@ export function useUpdateProfile() {
     },
   })
 }
+
+export function useUpdateBvn() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (bvn: string) => auth.updateBvn(bvn),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
+  })
+}
+
+export function useUpdatePayout() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: {
+      payoutAccountNumber: string
+      payoutBankName: string
+      payoutAccountName: string
+    }) => auth.updatePayout(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
+  })
+}
