@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [adminCode, setAdminCode] = useState('')
   const [error, setError] = useState('')
 
   const fromPath = location.state?.from?.pathname
@@ -31,7 +30,7 @@ export default function LoginPage() {
     setError('')
     try {
       if (isAdmin) {
-        await adminLogin({ email, password, adminCode })
+        await adminLogin({ email, password })
       } else {
         await login({ email, password })
       }
@@ -93,16 +92,6 @@ export default function LoginPage() {
               />
               <span className="text-sm text-nomba-text-secondary">Admin login</span>
             </label>
-            {isAdmin && (
-              <Input
-                id="adminCode"
-                label="Admin Code"
-                value={adminCode}
-                onChange={(e) => setAdminCode(e.target.value)}
-                required
-                placeholder="Enter admin code"
-              />
-            )}
             {error && (
               <p className="rounded-[var(--radius-md)] bg-nomba-error-bg px-3 py-2 text-sm text-nomba-error">
                 {error}
