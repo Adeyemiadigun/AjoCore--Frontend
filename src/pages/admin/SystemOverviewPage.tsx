@@ -184,7 +184,7 @@ export default function SystemOverviewPage() {
                           {group.memberCount} members
                         </p>
                       </div>
-                      <Badge variant={group.isActive ? 'success' : 'neutral'}>
+                      <Badge variant={group.isActive ? 'success' : 'default'}>
                         {group.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
