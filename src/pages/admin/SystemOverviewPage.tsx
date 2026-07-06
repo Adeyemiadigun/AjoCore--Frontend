@@ -135,6 +135,14 @@ export default function SystemOverviewPage() {
                 <p className="text-4xl font-extrabold text-nomba-text">
                   {formatCurrency(balance.systemStats.totalContributions)}
                 </p>
+                {nombaBalance?.balance !== undefined && (
+                  <p className="mt-2 text-sm font-medium text-nomba-warning">
+                    Unrecorded Funds:{' '}
+                    {formatCurrency(
+                      Math.max(0, nombaBalance.balance - balance.systemStats.totalContributions),
+                    )}
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => setIsWithdrawModalOpen(true)}
