@@ -3,7 +3,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Shield, GearSix, Money, UsersThree } from '@phosphor-icons/react'
-import toast from 'react-hot-toast'
 
 export default function SettingsPage() {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false)
@@ -14,7 +13,7 @@ export default function SettingsPage() {
     setIsSaving(true)
     setTimeout(() => {
       setIsSaving(false)
-      toast.success('System settings saved successfully')
+      alert('System settings saved successfully')
     }, 1000)
   }
 

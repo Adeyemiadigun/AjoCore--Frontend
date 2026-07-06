@@ -42,7 +42,7 @@ export default function UsersPage() {
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              prefix={<MagnifyingGlass className="h-5 w-5 text-nomba-text-secondary" />}
+              suffix={<MagnifyingGlass className="h-5 w-5 text-nomba-text-secondary" />}
             />
           </div>
         </div>
