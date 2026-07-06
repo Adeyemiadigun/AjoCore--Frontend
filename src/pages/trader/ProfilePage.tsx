@@ -48,6 +48,10 @@ export default function ProfilePage() {
     lastName: '',
     phoneNumber: '',
     dateOfBirth: '',
+    bvn: '',
+    payoutAccountNumber: '',
+    payoutBankName: '',
+    payoutAccountName: '',
   })
 
   function startEdit() {
@@ -57,6 +61,10 @@ export default function ProfilePage() {
       lastName: profile.lastName,
       phoneNumber: profile.phoneNumber,
       dateOfBirth: profile.dateOfBirth ?? '',
+      bvn: profile.bvn ?? '',
+      payoutAccountNumber: profile.payoutAccountNumber ?? '',
+      payoutBankName: profile.payoutBankName ?? '',
+      payoutAccountName: profile.payoutAccountName ?? '',
     })
     setEditing(true)
   }
@@ -71,6 +79,10 @@ export default function ProfilePage() {
       lastName: form.lastName,
       phoneNumber: form.phoneNumber,
       dateOfBirth: form.dateOfBirth || undefined,
+      bvn: form.bvn || undefined,
+      payoutAccountNumber: form.payoutAccountNumber || undefined,
+      payoutBankName: form.payoutBankName || undefined,
+      payoutAccountName: form.payoutAccountName || undefined,
     })
     setEditing(false)
   }
@@ -180,6 +192,41 @@ export default function ProfilePage() {
                 value={form.dateOfBirth}
                 onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
               />
+
+              <div className="border-t border-nomba-border pt-4 mt-2">
+                <h3 className="text-sm font-semibold text-nomba-text mb-3">
+                  Verification & Payout Details
+                </h3>
+                <div className="space-y-4">
+                  <Input
+                    label="BVN"
+                    value={form.bvn}
+                    onChange={(e) => setForm({ ...form, bvn: e.target.value })}
+                    placeholder="Enter 11-digit BVN"
+                  />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input
+                      label="Bank Name"
+                      value={form.payoutBankName}
+                      onChange={(e) => setForm({ ...form, payoutBankName: e.target.value })}
+                      placeholder="e.g. GTBank"
+                    />
+                    <Input
+                      label="Account Number"
+                      value={form.payoutAccountNumber}
+                      onChange={(e) => setForm({ ...form, payoutAccountNumber: e.target.value })}
+                      placeholder="10 digit account number"
+                    />
+                  </div>
+                  <Input
+                    label="Account Name"
+                    value={form.payoutAccountName}
+                    onChange={(e) => setForm({ ...form, payoutAccountName: e.target.value })}
+                    placeholder="Exact name on account"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center gap-3 pt-2">
                 <Button onClick={handleSave} loading={updateMutation.isPending}>
                   <FloppyDisk size={16} />

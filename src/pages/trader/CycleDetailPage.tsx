@@ -116,14 +116,7 @@ export default function CycleDetailPage() {
     )
   }
 
-  const targetAmount =
-    cycleDetails.contributionAmount *
-    (cycleDetails.endDate && cycleDetails.startDate
-      ? Math.floor(
-          (new Date(cycleDetails.endDate).getTime() - new Date(cycleDetails.startDate).getTime()) /
-            (1000 * 60 * 60 * 24 * cycleDetails.intervalDays),
-        ) + 1
-      : 0)
+  const targetAmount = fullCycle?.targetAmount ?? 0
 
   const totalPaid = contributionsData?.totalContributed ?? 0
   const progress =
@@ -180,7 +173,7 @@ export default function CycleDetailPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
                 <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3">
                   <p className="text-xs text-nomba-text-secondary">Contribution</p>
                   <p className="mt-1 font-semibold text-nomba-text">
@@ -196,7 +189,13 @@ export default function CycleDetailPage() {
                 <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3">
                   <p className="text-xs text-nomba-text-secondary">Start Date</p>
                   <p className="mt-1 font-semibold text-nomba-text">
-                    {formatDate(cycleDetails.startDate)}
+                    {cycleDetails.startDate ? formatDate(cycleDetails.startDate) : 'N/A'}
+                  </p>
+                </div>
+                <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3">
+                  <p className="text-xs text-nomba-text-secondary">End Date</p>
+                  <p className="mt-1 font-semibold text-nomba-text">
+                    {cycleDetails.endDate ? formatDate(cycleDetails.endDate) : 'N/A'}
                   </p>
                 </div>
                 {!isAdmin && (

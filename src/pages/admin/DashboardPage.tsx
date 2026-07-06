@@ -41,6 +41,7 @@ export default function AdminDashboard() {
     queryKey: ['balance', 'admin', managedGroup?.id],
     queryFn: () => balances.admin(managedGroup!.id),
     enabled: !!managedGroup?.id,
+    refetchInterval: 30000,
   })
 
   const { data: pendingRequests, isLoading: isLoadingRequests } = useQuery({
