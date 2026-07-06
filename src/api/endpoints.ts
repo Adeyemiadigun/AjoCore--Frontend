@@ -116,7 +116,12 @@ export const auth = {
   profile: async () => {
     const stored = localStorage.getItem('ajocore_user')
     const role: UserRole = stored ? (JSON.parse(stored) as any).role : 'Trader'
-    const endpoint = role === 'CooperativeAdmin' ? '/profile/cooperative-admin' : '/profile/trader'
+    const endpoint =
+      role === 'SystemAdmin'
+        ? '/profile/system-admin'
+        : role === 'CooperativeAdmin'
+          ? '/profile/cooperative-admin'
+          : '/profile/trader'
     const res = await apiClient.get<{ success: boolean; data: any }>(endpoint)
     return mapProfile(res.data.data)
   },
@@ -127,9 +132,19 @@ export const auth = {
       phoneNumber: data.phoneNumber,
     }
     if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth
+    if (data.bvn) payload.bvn = data.bvn
+    if (data.payoutAccountNumber) payload.payoutAccountNumber = data.payoutAccountNumber
+    if (data.payoutBankName) payload.payoutBankName = data.payoutBankName
+    if (data.payoutAccountName) payload.payoutAccountName = data.payoutAccountName
+
     const stored = localStorage.getItem('ajocore_user')
     const role: UserRole = stored ? (JSON.parse(stored) as any).role : 'Trader'
-    const endpoint = role === 'CooperativeAdmin' ? '/profile/cooperative-admin' : '/profile/trader'
+    const endpoint =
+      role === 'SystemAdmin'
+        ? '/profile/system-admin'
+        : role === 'CooperativeAdmin'
+          ? '/profile/cooperative-admin'
+          : '/profile/trader'
     const res = await apiClient.put<{ success: boolean; data: any }>(endpoint, payload)
     return mapProfile(res.data.data)
   },
@@ -180,6 +195,7 @@ export const balances = {
 
 export const cycles = {
   list: () => apiClient.get<any[]>('/saving-cycles').then((r) => r.data.map(mapCycle)),
+  systemAll: () => apiClient.get<any[]>('/saving-cycles').then((r) => r.data.map(mapCycle)),
   myAll: () =>
     apiClient.get<any>('/balances/my-balances').then((r) =>
       (r.data.cycleBalances || r.data.CycleBalances || []).map(
@@ -304,6 +320,13 @@ export const cycles = {
         webhookId: c.nombaWebhookRequestId ?? c.NombaWebhookRequestId ?? '',
       })),
     })),
+}
+
+export const users = {
+  getAll: async () => {
+    const response = await apiClient.get<any[]>('/users')
+    return response.data
+  },
 }
 
 export const groups = {

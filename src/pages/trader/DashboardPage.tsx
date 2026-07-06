@@ -28,6 +28,7 @@ export default function TraderDashboard() {
   const { data: balance, isLoading: isLoadingBalance } = useQuery({
     queryKey: ['balance', 'trader'],
     queryFn: balances.trader,
+    refetchInterval: 30000,
   })
 
   const { data: myCycles, isLoading: isLoadingCycles } = useQuery({

@@ -19,6 +19,7 @@ export default function SystemOverviewPage() {
   const { data: balance, isLoading } = useQuery({
     queryKey: ['balance', 'system'],
     queryFn: balances.system,
+    refetchInterval: 30000,
   })
 
   const {
@@ -28,6 +29,7 @@ export default function SystemOverviewPage() {
   } = useQuery({
     queryKey: ['balance', 'nomba'],
     queryFn: () => balances.nombaWallet(),
+    refetchInterval: 30000,
   })
 
   const { data: groupList, isLoading: isLoadingGroups } = useQuery({
