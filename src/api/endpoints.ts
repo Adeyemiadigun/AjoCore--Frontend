@@ -170,6 +170,8 @@ export const balances = {
           ),
           activeCycles: (r.data.cycleBalances || r.data.CycleBalances || []).length,
           pendingContributions: r.data.pendingContributions ?? r.data.PendingContributions ?? 0,
+          currentIntervalTarget: r.data.currentIntervalTarget ?? r.data.CurrentIntervalTarget ?? 0,
+          currentIntervalSaved: r.data.currentIntervalSaved ?? r.data.CurrentIntervalSaved ?? 0,
         }) as BalanceInfo,
     ),
   admin: (groupId: string) =>

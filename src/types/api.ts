@@ -210,6 +210,8 @@ export interface BalanceInfo {
   totalEarnings?: number
   activeCycles: number
   pendingContributions: number
+  currentIntervalTarget?: number
+  currentIntervalSaved?: number
   nextDueDate?: string
   totalGroupSavings?: number
   totalMembers?: number
