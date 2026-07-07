@@ -128,6 +128,8 @@ export default function CycleDetailPage() {
   const targetAmount = fullCycle?.targetAmount ?? 0
 
   const totalPaid = contributionsData?.totalContributed ?? 0
+  const overallProgress =
+    targetAmount > 0 ? Math.min(100, Math.round((totalPaid / targetAmount) * 100)) : 0
   let currentIntervalSaved = totalPaid
   let currentIntervalTarget = cycleDetails?.contributionAmount ?? 0
   let progress =
@@ -236,7 +238,7 @@ export default function CycleDetailPage() {
                     {intervalEnd ? formatDate(intervalEnd.toISOString()) : 'N/A'}
                   </p>
                 </div>
-                {!isAdmin && (
+                {!isAdmin && cycleDetails.cycleType === 'Rosca' && (
                   <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3">
                     <p className="text-xs text-nomba-text-secondary">Payout Order</p>
                     <p className="mt-1 font-semibold text-nomba-text">
@@ -248,16 +250,32 @@ export default function CycleDetailPage() {
 
               {!isAdmin && (
                 <div>
-                  <div className="mb-2 flex justify-between text-sm">
-                    <span className="font-medium text-nomba-text">
-                      Round {currentInterval} Progress ({progress}%)
-                    </span>
-                    <span className="text-nomba-text-secondary">
-                      {formatCurrency(currentIntervalSaved)} /{' '}
-                      {formatCurrency(currentIntervalTarget)}
-                    </span>
-                  </div>
-                  <ProgressBar value={progress} />
+                  {cycleDetails.cycleType === 'Rosca' ? (
+                    <>
+                      <div className="mb-2 flex justify-between text-sm">
+                        <span className="font-medium text-nomba-text">
+                          Round {currentInterval} Progress ({progress}%)
+                        </span>
+                        <span className="text-nomba-text-secondary">
+                          {formatCurrency(currentIntervalSaved)} /{' '}
+                          {formatCurrency(currentIntervalTarget)}
+                        </span>
+                      </div>
+                      <ProgressBar value={progress} />
+                    </>
+                  ) : (
+                    <>
+                      <div className="mb-2 flex justify-between text-sm">
+                        <span className="font-medium text-nomba-text">
+                          Overall Savings Progress ({overallProgress}%)
+                        </span>
+                        <span className="text-nomba-text-secondary">
+                          {formatCurrency(totalPaid)} / {formatCurrency(targetAmount)}
+                        </span>
+                      </div>
+                      <ProgressBar value={totalPaid} max={targetAmount} />
+                    </>
+                  )}
                 </div>
               )}
             </CardContent>
