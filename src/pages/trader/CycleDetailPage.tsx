@@ -56,6 +56,15 @@ export default function CycleDetailPage() {
     enabled: !!memberId && !isAdmin,
   })
 
+  // Payouts data for the logged in user
+  const { data: payoutsData, isLoading: isLoadingPayouts } = useQuery({
+    queryKey: ['payouts', memberId],
+    queryFn: () => cycles.getPayouts(memberId!),
+    enabled: !!memberId && !isAdmin,
+  })
+
+  const [activeTab, setActiveTab] = useState<'contributions' | 'payouts'>('contributions')
+
   const startMutation = useMutation({
     mutationFn: cycles.start,
     onSuccess: () => {
@@ -119,18 +128,44 @@ export default function CycleDetailPage() {
   const targetAmount = fullCycle?.targetAmount ?? 0
 
   const totalPaid = contributionsData?.totalContributed ?? 0
-  const progress =
-    targetAmount > 0 ? Math.min(100, Math.round((totalPaid / targetAmount) * 100)) : 0
-
-  // Admin logic for active rounds
-  const now = new Date()
-  const start = new Date(cycleDetails.startDate)
-  const activePayoutRound =
-    cycleDetails.status === CycleStatus.Active && now >= start
-      ? Math.floor(
-          (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * cycleDetails.intervalDays),
-        ) + 1
+  let currentIntervalSaved = totalPaid
+  let currentIntervalTarget = cycleDetails?.contributionAmount ?? 0
+  let progress =
+    currentIntervalTarget > 0
+      ? Math.min(100, Math.round((currentIntervalSaved / currentIntervalTarget) * 100))
       : 0
+  let currentInterval = 1
+
+  const now = new Date()
+  const start = cycleDetails?.startDate ? new Date(cycleDetails.startDate) : null
+
+  if (start && start <= now && cycleDetails?.intervalDays > 0) {
+    const daysElapsed = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    currentInterval = Math.floor(daysElapsed / cycleDetails.intervalDays) + 1
+
+    const intervalStart = new Date(
+      start.getTime() + (currentInterval - 1) * cycleDetails.intervalDays * 24 * 60 * 60 * 1000,
+    )
+    const intervalEnd = new Date(
+      intervalStart.getTime() + cycleDetails.intervalDays * 24 * 60 * 60 * 1000,
+    )
+
+    if (contributionsData?.contributions) {
+      currentIntervalSaved = contributionsData.contributions
+        .filter((c: any) => {
+          const d = new Date(c.paidAt)
+          return d >= intervalStart && d < intervalEnd
+        })
+        .reduce((sum: number, c: any) => sum + c.amount, 0)
+    }
+    progress =
+      currentIntervalTarget > 0
+        ? Math.min(100, Math.round((currentIntervalSaved / currentIntervalTarget) * 100))
+        : 0
+  }
+
+  const activePayoutRound =
+    cycleDetails.status === CycleStatus.Active && start && now >= start ? currentInterval : 0
 
   return (
     <div className="space-y-6 pb-12">
@@ -211,9 +246,12 @@ export default function CycleDetailPage() {
               {!isAdmin && (
                 <div>
                   <div className="mb-2 flex justify-between text-sm">
-                    <span className="font-medium text-nomba-text">Progress ({progress}%)</span>
+                    <span className="font-medium text-nomba-text">
+                      Round {currentInterval} Progress ({progress}%)
+                    </span>
                     <span className="text-nomba-text-secondary">
-                      {formatCurrency(totalPaid)} / {formatCurrency(targetAmount)}
+                      {formatCurrency(currentIntervalSaved)} /{' '}
+                      {formatCurrency(currentIntervalTarget)}
                     </span>
                   </div>
                   <ProgressBar value={progress} />
@@ -371,39 +409,83 @@ export default function CycleDetailPage() {
             </Card>
           )}
 
-          {/* Contributions History (Trader only) */}
+          {/* History (Trader only) */}
           {!isAdmin && (
             <Card>
-              <CardHeader>
-                <CardTitle>Contribution History</CardTitle>
+              <CardHeader className="border-b border-nomba-border pb-0">
+                <div className="flex gap-6">
+                  <button
+                    className={`pb-4 text-sm font-medium transition-colors ${activeTab === 'contributions' ? 'border-b-2 border-nomba-yellow text-nomba-text' : 'text-nomba-text-secondary hover:text-nomba-text'}`}
+                    onClick={() => setActiveTab('contributions')}
+                  >
+                    Contributions
+                  </button>
+                  <button
+                    className={`pb-4 text-sm font-medium transition-colors ${activeTab === 'payouts' ? 'border-b-2 border-nomba-yellow text-nomba-text' : 'text-nomba-text-secondary hover:text-nomba-text'}`}
+                    onClick={() => setActiveTab('payouts')}
+                  >
+                    Payout History
+                  </button>
+                </div>
               </CardHeader>
-              <CardContent>
-                {isLoadingContributions ? (
+              <CardContent className="pt-6">
+                {activeTab === 'contributions' ? (
+                  isLoadingContributions ? (
+                    <div className="flex h-32 items-center justify-center">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-nomba-border border-t-nomba-yellow" />
+                    </div>
+                  ) : !contributionsData || contributionsData.contributions.length === 0 ? (
+                    <div className="py-8 text-center text-sm text-nomba-text-secondary">
+                      No contributions recorded yet. Make your first payment to the virtual account.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-nomba-border">
+                      {contributionsData.contributions.map((c: any) => (
+                        <div key={c.webhookId} className="flex items-center justify-between py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-nomba-success-bg text-nomba-success">
+                              <CheckCircle size={20} weight="fill" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-nomba-text">
+                                {formatCurrency(c.amount)}
+                              </p>
+                              <p className="text-xs text-nomba-text-secondary">
+                                {formatDateTime(c.paidAt)}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant="success">Confirmed</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                ) : isLoadingPayouts ? (
                   <div className="flex h-32 items-center justify-center">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-nomba-border border-t-nomba-yellow" />
                   </div>
-                ) : !contributionsData || contributionsData.contributions.length === 0 ? (
+                ) : !payoutsData || payoutsData.length === 0 ? (
                   <div className="py-8 text-center text-sm text-nomba-text-secondary">
-                    No contributions recorded yet. Make your first payment to the virtual account.
+                    No payouts received yet.
                   </div>
                 ) : (
                   <div className="divide-y divide-nomba-border">
-                    {contributionsData.contributions.map((c: any) => (
-                      <div key={c.webhookId} className="flex items-center justify-between py-3">
+                    {payoutsData.map((p: any) => (
+                      <div key={p.ref} className="flex items-center justify-between py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-nomba-success-bg text-nomba-success">
-                            <CheckCircle size={20} weight="fill" />
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-nomba-info-bg text-nomba-info">
+                            <CurrencyNgn size={20} weight="bold" />
                           </div>
                           <div>
                             <p className="font-medium text-nomba-text">
-                              {formatCurrency(c.amount)}
+                              {formatCurrency(p.amount)}
                             </p>
                             <p className="text-xs text-nomba-text-secondary">
-                              {formatDateTime(c.paidAt)}
+                              {formatDateTime(p.date)}
                             </p>
                           </div>
                         </div>
-                        <Badge variant="success">Confirmed</Badge>
+                        <Badge variant="info">Paid Out</Badge>
                       </div>
                     ))}
                   </div>
@@ -427,9 +509,9 @@ export default function CycleDetailPage() {
                 <p className="text-sm text-nomba-text">
                   Transfer exactly{' '}
                   <span className="font-bold">
-                    {formatCurrency(cycleDetails.contributionAmount)}
+                    {formatCurrency(cycleDetails.contributionAmount + 20)}
                   </span>{' '}
-                  to the account below.
+                  to the account below (Includes 20 NGN flat fee).
                 </p>
 
                 <div className="rounded-[var(--radius-lg)] border-2 border-nomba-border bg-nomba-surface p-4 shadow-sm">
@@ -484,7 +566,8 @@ export default function CycleDetailPage() {
                   <p className="text-sm font-medium text-nomba-warning">Important:</p>
                   <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-nomba-text-secondary">
                     <li>
-                      Transfers less than the contribution amount will be automatically reversed.
+                      Transfers MUST exactly match the required amount (Contribution + 20 NGN flat
+                      fee). Any overpayments or underpayments will be automatically reversed.
                     </li>
                     <li>
                       Your payment will be automatically recorded once the bank confirms the

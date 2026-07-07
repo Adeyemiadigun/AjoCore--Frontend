@@ -222,17 +222,22 @@ export const cycles = {
             memberCount: 1,
             nextContributionDate: null,
             progress:
-              (cb.TargetAmount ?? cb.targetAmount ?? 0) > 0
+              (cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0) > 0
                 ? Math.min(
                     Math.round(
-                      ((cb.TotalPaid ?? cb.totalPaid ?? 0) /
-                        (cb.TargetAmount ?? cb.targetAmount ?? 0)) *
+                      ((cb.CurrentIntervalSaved ?? cb.currentIntervalSaved ?? 0) /
+                        (cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0)) *
                         100,
                     ),
                     100,
                   )
                 : 0,
             groupId: cb.CooperativeGroupId ?? cb.cooperativeGroupId ?? null,
+            currentInterval: cb.CurrentInterval ?? cb.currentInterval ?? 1,
+            currentIntervalTarget: Number(
+              cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0,
+            ),
+            currentIntervalSaved: Number(cb.CurrentIntervalSaved ?? cb.currentIntervalSaved ?? 0),
           }) as SavingCycle,
       ),
     ),
@@ -328,6 +333,14 @@ export const cycles = {
         webhookId: c.nombaWebhookRequestId ?? c.NombaWebhookRequestId ?? '',
       })),
     })),
+  getPayouts: (memberId: string) =>
+    apiClient.get<any[]>(`/saving-cycles/members/${memberId}/payouts`).then((r) =>
+      r.data.map((p: any) => ({
+        amount: p.amount ?? p.Amount ?? 0,
+        date: p.payoutDate ?? p.PayoutDate ?? '',
+        ref: p.merchantTxRef ?? p.MerchantTxRef ?? '',
+      })),
+    ),
 }
 
 export const users = {

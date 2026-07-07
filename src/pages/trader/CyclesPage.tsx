@@ -244,7 +244,7 @@ export default function CyclesPage() {
 
                   <div>
                     <div className="mb-1 flex justify-between text-xs text-nomba-text-secondary">
-                      <span>Progress</span>
+                      <span>Round {cycle.currentInterval || 1} Progress</span>
                       <span className="font-medium text-nomba-text">
                         {Math.round(cycle.progress)}%
                       </span>
@@ -254,7 +254,7 @@ export default function CyclesPage() {
 
                   <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3 mt-auto">
                     <div className="flex justify-between text-sm">
-                      <span className="text-nomba-text-secondary">Target</span>
+                      <span className="text-nomba-text-secondary">Total Target</span>
                       <span className="font-bold text-nomba-text">
                         {formatCurrency(cycle.targetAmount)}
                       </span>
