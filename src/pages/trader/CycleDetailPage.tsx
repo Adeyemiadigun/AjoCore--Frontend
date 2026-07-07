@@ -139,14 +139,17 @@ export default function CycleDetailPage() {
   const now = new Date()
   const start = cycleDetails?.startDate ? new Date(cycleDetails.startDate) : null
 
+  let intervalStart = start
+  let intervalEnd = cycleDetails?.endDate ? new Date(cycleDetails.endDate) : null
+
   if (start && start <= now && cycleDetails?.intervalDays > 0) {
     const daysElapsed = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
     currentInterval = Math.floor(daysElapsed / cycleDetails.intervalDays) + 1
 
-    const intervalStart = new Date(
+    intervalStart = new Date(
       start.getTime() + (currentInterval - 1) * cycleDetails.intervalDays * 24 * 60 * 60 * 1000,
     )
-    const intervalEnd = new Date(
+    intervalEnd = new Date(
       intervalStart.getTime() + cycleDetails.intervalDays * 24 * 60 * 60 * 1000,
     )
 
@@ -154,7 +157,7 @@ export default function CycleDetailPage() {
       currentIntervalSaved = contributionsData.contributions
         .filter((c: any) => {
           const d = new Date(c.paidAt)
-          return d >= intervalStart && d < intervalEnd
+          return d >= intervalStart! && d < intervalEnd!
         })
         .reduce((sum: number, c: any) => sum + c.amount, 0)
     }
@@ -222,15 +225,15 @@ export default function CycleDetailPage() {
                   </p>
                 </div>
                 <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3">
-                  <p className="text-xs text-nomba-text-secondary">Start Date</p>
+                  <p className="text-xs text-nomba-text-secondary">Round Start</p>
                   <p className="mt-1 font-semibold text-nomba-text">
-                    {cycleDetails.startDate ? formatDate(cycleDetails.startDate) : 'N/A'}
+                    {intervalStart ? formatDate(intervalStart.toISOString()) : 'N/A'}
                   </p>
                 </div>
                 <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3">
-                  <p className="text-xs text-nomba-text-secondary">End Date</p>
+                  <p className="text-xs text-nomba-text-secondary">Next Due Date</p>
                   <p className="mt-1 font-semibold text-nomba-text">
-                    {cycleDetails.endDate ? formatDate(cycleDetails.endDate) : 'N/A'}
+                    {intervalEnd ? formatDate(intervalEnd.toISOString()) : 'N/A'}
                   </p>
                 </div>
                 {!isAdmin && (
