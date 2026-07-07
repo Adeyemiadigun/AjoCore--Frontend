@@ -28,6 +28,7 @@ export default function TraderDashboard() {
   const { data: balance, isLoading: isLoadingBalance } = useQuery({
     queryKey: ['balance', 'trader'],
     queryFn: balances.trader,
+    refetchInterval: 30000,
   })
 
   const { data: myCycles, isLoading: isLoadingCycles } = useQuery({
@@ -122,34 +123,48 @@ export default function TraderDashboard() {
               <div className="space-y-4">
                 <div>
                   <div className="mb-1 flex justify-between text-sm">
-                    <span className="text-nomba-text-secondary">Overall progress</span>
+                    <span className="text-nomba-text-secondary">Current round progress</span>
                     <span className="font-medium">
-                      {Math.min(
-                        Math.round((balance.walletBalance / balance.totalSavings) * 100),
-                        100,
-                      )}
+                      {balance?.currentIntervalTarget && balance.currentIntervalTarget > 0
+                        ? Math.min(
+                            Math.round(
+                              ((balance.currentIntervalSaved ?? 0) /
+                                balance.currentIntervalTarget) *
+                                100,
+                            ),
+                            100,
+                          )
+                        : 0}
                       %
                     </span>
                   </div>
-                  <ProgressBar value={balance.walletBalance} max={balance.totalSavings} size="lg" />
+                  <ProgressBar
+                    value={balance.currentIntervalSaved ?? 0}
+                    max={
+                      balance.currentIntervalTarget && balance.currentIntervalTarget > 0
+                        ? balance.currentIntervalTarget
+                        : 1
+                    }
+                    size="lg"
+                  />
                 </div>
                 <div className="grid grid-cols-3 gap-4 rounded-[var(--radius-md)] bg-nomba-bg p-4 text-center">
                   <div>
-                    <p className="text-xs text-nomba-text-secondary">Total Paid</p>
+                    <p className="text-xs text-nomba-text-secondary">Saved this Round</p>
                     <p className="mt-1 text-sm font-bold text-nomba-success">
-                      {formatCurrency(balance.walletBalance)}
+                      {formatCurrency(balance.currentIntervalSaved ?? 0)}
                     </p>
                   </div>
                   <div className="border-x border-nomba-border">
                     <p className="text-xs text-nomba-text-secondary">Remaining</p>
                     <p className="mt-1 text-sm font-bold text-nomba-warning">
-                      {formatCurrency(Math.max(0, balance.totalSavings - balance.walletBalance))}
+                      {formatCurrency(balance.pendingContributions ?? 0)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-nomba-text-secondary">Total Target</p>
+                    <p className="text-xs text-nomba-text-secondary">Target this Round</p>
                     <p className="mt-1 text-sm font-bold text-nomba-text">
-                      {formatCurrency(balance.totalSavings)}
+                      {formatCurrency(balance.currentIntervalTarget ?? 0)}
                     </p>
                   </div>
                 </div>

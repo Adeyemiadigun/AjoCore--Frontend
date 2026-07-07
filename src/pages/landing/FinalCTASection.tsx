@@ -5,7 +5,7 @@ import { Blob } from './components'
 import { SectionFade } from './components'
 
 export function FinalCTASection() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden bg-nomba-text">
@@ -21,7 +21,9 @@ export function FinalCTASection() {
             Join thousands of Nigerians already saving smarter with AjoCore. Start your first cycle
             today.
           </p>
-          {isAuthenticated ? (
+          {isLoading ? (
+            <div className="mx-auto h-14 w-48 animate-pulse rounded-2xl bg-white/10" />
+          ) : isAuthenticated ? (
             <Link
               to="/dashboard"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-nomba-yellow text-nomba-text font-bold text-lg hover:bg-nomba-yellow-dark shadow-card-hover shadow-nomba-yellow-dark/30 transition-all"

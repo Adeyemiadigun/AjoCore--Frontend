@@ -103,7 +103,12 @@ export const auth = {
     return res.data.message
   },
   adminLogin: (data: LoginRequest) =>
-    apiClient.post<AuthResponse>('/auth/admin-login', data).then((r) => r.data),
+    apiClient
+      .post<AuthResponse>('/auth/admin-login', {
+        emailOrUsername: data.email,
+        password: data.password,
+      })
+      .then((r) => r.data),
   verifyEmail: (data: { email: string; token: string }) =>
     apiClient.post<{ success: boolean }>('/auth/verify-email', data).then((r) => r.data),
   refreshToken: (token: string, refreshToken: string) =>
@@ -111,7 +116,12 @@ export const auth = {
   profile: async () => {
     const stored = localStorage.getItem('ajocore_user')
     const role: UserRole = stored ? (JSON.parse(stored) as any).role : 'Trader'
-    const endpoint = role === 'CooperativeAdmin' ? '/profile/cooperative-admin' : '/profile/trader'
+    const endpoint =
+      role === 'SystemAdmin'
+        ? '/profile/system-admin'
+        : role === 'CooperativeAdmin'
+          ? '/profile/cooperative-admin'
+          : '/profile/trader'
     const res = await apiClient.get<{ success: boolean; data: any }>(endpoint)
     return mapProfile(res.data.data)
   },
@@ -122,10 +132,28 @@ export const auth = {
       phoneNumber: data.phoneNumber,
     }
     if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth
+
     const stored = localStorage.getItem('ajocore_user')
     const role: UserRole = stored ? (JSON.parse(stored) as any).role : 'Trader'
-    const endpoint = role === 'CooperativeAdmin' ? '/profile/cooperative-admin' : '/profile/trader'
+    const endpoint =
+      role === 'SystemAdmin'
+        ? '/profile/system-admin'
+        : role === 'CooperativeAdmin'
+          ? '/profile/cooperative-admin'
+          : '/profile/trader'
     const res = await apiClient.put<{ success: boolean; data: any }>(endpoint, payload)
+    return mapProfile(res.data.data)
+  },
+  updateBvn: async (bvn: string) => {
+    const res = await apiClient.put<{ success: boolean; data: any }>('/profile/trader/bvn', { bvn })
+    return mapProfile(res.data.data)
+  },
+  updatePayout: async (data: {
+    payoutAccountNumber: string
+    payoutBankName: string
+    payoutAccountName: string
+  }) => {
+    const res = await apiClient.put<{ success: boolean; data: any }>('/profile/trader/payout', data)
     return mapProfile(res.data.data)
   },
 }
@@ -142,6 +170,8 @@ export const balances = {
           ),
           activeCycles: (r.data.cycleBalances || r.data.CycleBalances || []).length,
           pendingContributions: r.data.pendingContributions ?? r.data.PendingContributions ?? 0,
+          currentIntervalTarget: r.data.currentIntervalTarget ?? r.data.CurrentIntervalTarget ?? 0,
+          currentIntervalSaved: r.data.currentIntervalSaved ?? r.data.CurrentIntervalSaved ?? 0,
         }) as BalanceInfo,
     ),
   admin: (groupId: string) =>
@@ -157,23 +187,25 @@ export const balances = {
           totalGroups: r.data.totalGroups ?? r.data.TotalGroups ?? 0,
         }) as BalanceInfo,
     ),
-  system: () =>
-    apiClient.get<any>('/balances/system').then(
-      (r) =>
-        ({
-          walletBalance: r.data.systemWalletBalance ?? 0,
-          totalSavings: r.data.totalContributions ?? 0,
-          activeCycles: 0,
-          pendingContributions: 0,
-          totalGroupSavings: r.data.totalContributions ?? 0,
-          totalGroups: 0,
-          totalMembers: 0,
-        }) as BalanceInfo,
-    ),
+  system: () => apiClient.get<any>('/balances/system').then((r) => r.data),
+  nombaWallet: () =>
+    apiClient.get<any>('/balances/nomba-wallet').then((r) => ({
+      balance: r.data.balance ?? r.data.Balance ?? 0,
+      currency: r.data.currency ?? r.data.Currency ?? 'NGN',
+    })),
+  withdrawNombaFunds: (data: {
+    amount: number
+    accountNumber: string
+    bankCode: string
+    accountName: string
+    senderName: string
+    merchantTxRef: string
+  }) => apiClient.post<any>('/balances/withdraw-nomba-funds', data).then((r) => r.data),
 }
 
 export const cycles = {
   list: () => apiClient.get<any[]>('/saving-cycles').then((r) => r.data.map(mapCycle)),
+  systemAll: () => apiClient.get<any[]>('/saving-cycles').then((r) => r.data.map(mapCycle)),
   myAll: () =>
     apiClient.get<any>('/balances/my-balances').then((r) =>
       (r.data.cycleBalances || r.data.CycleBalances || []).map(
@@ -184,25 +216,30 @@ export const cycles = {
             cycleType: TYPE_MAP[cb.CycleType ?? cb.cycleType ?? ''] ?? CycleType.Individual,
             targetAmount: Number(cb.TargetAmount ?? cb.targetAmount ?? 0),
             totalSaved: Number(cb.TotalPaid ?? cb.totalPaid ?? 0),
-            contributionAmount: 0,
-            frequency: ContributionFrequency.Monthly,
+            contributionAmount: Number(cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0),
+            frequency: intervalToFrequency(cb.IntervalDays ?? cb.intervalDays ?? 7),
             startDate: '',
             endDate: '',
-            status: CycleStatus.Active,
-            memberCount: 1,
+            status: STATUS_MAP[cb.CycleStatus ?? cb.cycleStatus ?? ''] ?? CycleStatus.Active,
+            memberCount: cb.MemberCount ?? cb.memberCount ?? 1,
             nextContributionDate: null,
             progress:
-              (cb.TargetAmount ?? cb.targetAmount ?? 0) > 0
+              (cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0) > 0
                 ? Math.min(
                     Math.round(
-                      ((cb.TotalPaid ?? cb.totalPaid ?? 0) /
-                        (cb.TargetAmount ?? cb.targetAmount ?? 0)) *
+                      ((cb.CurrentIntervalSaved ?? cb.currentIntervalSaved ?? 0) /
+                        (cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0)) *
                         100,
                     ),
                     100,
                   )
                 : 0,
             groupId: cb.CooperativeGroupId ?? cb.cooperativeGroupId ?? null,
+            currentInterval: cb.CurrentInterval ?? cb.currentInterval ?? 1,
+            currentIntervalTarget: Number(
+              cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0,
+            ),
+            currentIntervalSaved: Number(cb.CurrentIntervalSaved ?? cb.currentIntervalSaved ?? 0),
           }) as SavingCycle,
       ),
     ),
@@ -298,6 +335,21 @@ export const cycles = {
         webhookId: c.nombaWebhookRequestId ?? c.NombaWebhookRequestId ?? '',
       })),
     })),
+  getPayouts: (memberId: string) =>
+    apiClient.get<any[]>(`/saving-cycles/members/${memberId}/payouts`).then((r) =>
+      r.data.map((p: any) => ({
+        amount: p.amount ?? p.Amount ?? 0,
+        date: p.payoutDate ?? p.PayoutDate ?? '',
+        ref: p.merchantTxRef ?? p.MerchantTxRef ?? '',
+      })),
+    ),
+}
+
+export const users = {
+  getAll: async () => {
+    const response = await apiClient.get<any[]>('/users')
+    return response.data
+  },
 }
 
 export const groups = {

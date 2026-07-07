@@ -244,7 +244,7 @@ export default function CyclesPage() {
 
                   <div>
                     <div className="mb-1 flex justify-between text-xs text-nomba-text-secondary">
-                      <span>Progress</span>
+                      <span>Round {cycle.currentInterval || 1} Progress</span>
                       <span className="font-medium text-nomba-text">
                         {Math.round(cycle.progress)}%
                       </span>
@@ -253,24 +253,60 @@ export default function CyclesPage() {
                   </div>
 
                   <div className="rounded-[var(--radius-md)] bg-nomba-bg p-3 mt-auto">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-nomba-text-secondary">Target</span>
-                      <span className="font-bold text-nomba-text">
-                        {formatCurrency(cycle.targetAmount)}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex justify-between text-sm">
-                      <span className="text-nomba-text-secondary">Total Paid</span>
-                      <span className="font-bold text-nomba-success">
-                        {formatCurrency(cycle.totalSaved)}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex justify-between text-sm">
-                      <span className="text-nomba-text-secondary">Remaining</span>
-                      <span className="font-bold text-nomba-warning">
-                        {formatCurrency(Math.max(0, cycle.targetAmount - cycle.totalSaved))}
-                      </span>
-                    </div>
+                    {activeTab === 'active' ? (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-nomba-text-secondary">Round Target</span>
+                          <span className="font-bold text-nomba-text">
+                            {formatCurrency(
+                              cycle.currentIntervalTarget && cycle.currentIntervalTarget > 0
+                                ? cycle.currentIntervalTarget
+                                : cycle.targetAmount,
+                            )}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex justify-between text-sm">
+                          <span className="text-nomba-text-secondary">Round Paid</span>
+                          <span className="font-bold text-nomba-success">
+                            {formatCurrency(cycle.currentIntervalSaved ?? 0)}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex justify-between text-sm">
+                          <span className="text-nomba-text-secondary">Remaining</span>
+                          <span className="font-bold text-nomba-warning">
+                            {formatCurrency(
+                              Math.max(
+                                0,
+                                (cycle.currentIntervalTarget && cycle.currentIntervalTarget > 0
+                                  ? cycle.currentIntervalTarget
+                                  : cycle.targetAmount) - (cycle.currentIntervalSaved ?? 0),
+                              ),
+                            )}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-nomba-text-secondary">Total Target</span>
+                          <span className="font-bold text-nomba-text">
+                            {formatCurrency(cycle.targetAmount)}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex justify-between text-sm">
+                          <span className="text-nomba-text-secondary">Total Paid</span>
+                          <span className="font-bold text-nomba-success">
+                            {formatCurrency(cycle.totalSaved)}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex justify-between text-sm">
+                          <span className="text-nomba-text-secondary">Remaining</span>
+                          <span className="font-bold text-nomba-warning">
+                            {formatCurrency(Math.max(0, cycle.targetAmount - cycle.totalSaved))}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-nomba-text-secondary">

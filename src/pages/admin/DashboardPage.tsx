@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { WithdrawFundsModal } from '@/components/WithdrawFundsModal'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
     queryKey: ['balance', 'admin', managedGroup?.id],
     queryFn: () => balances.admin(managedGroup!.id),
     enabled: !!managedGroup?.id,
+    refetchInterval: 30000,
   })
 
   const { data: pendingRequests, isLoading: isLoadingRequests } = useQuery({
@@ -53,20 +55,20 @@ export default function AdminDashboard() {
 
   const stats = [
     {
-      label: 'Total Members',
-      value: balance?.totalMembers ?? 0,
-      icon: UsersThree,
-      color: 'text-nomba-info',
-      bg: 'bg-nomba-info-bg',
-      isCurrency: false,
-    },
-    {
       label: 'Total Group Savings',
       value: balance?.totalGroupSavings ?? 0,
       icon: PiggyBank,
       color: 'text-nomba-success',
       bg: 'bg-nomba-success-bg',
       isCurrency: true,
+    },
+    {
+      label: 'Total Members',
+      value: balance?.totalMembers ?? 0,
+      icon: UsersThree,
+      color: 'text-nomba-info',
+      bg: 'bg-nomba-info-bg',
+      isCurrency: false,
     },
     {
       label: 'Active Cycles',

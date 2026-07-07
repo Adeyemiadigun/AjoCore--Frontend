@@ -12,7 +12,7 @@ import {
   FloppyDisk,
   ArrowClockwise,
 } from '@phosphor-icons/react'
-import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
+import { useProfile, useUpdateProfile, useUpdateBvn, useUpdatePayout } from '@/hooks/useProfile'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -41,13 +41,25 @@ function roleLabel(role?: UserRole): string {
 export default function ProfilePage() {
   const { data: profile, isLoading, isError, error, refetch } = useProfile()
   const updateMutation = useUpdateProfile()
-  const { user: authUser } = useAuth()
+  const bvnMutation = useUpdateBvn()
+  const payoutMutation = useUpdatePayout()
+
   const [editing, setEditing] = useState(false)
+  const [editingBvn, setEditingBvn] = useState(false)
+  const [editingPayout, setEditingPayout] = useState(false)
+
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
     phoneNumber: '',
     dateOfBirth: '',
+  })
+
+  const [bvnForm, setBvnForm] = useState({ bvn: '' })
+  const [payoutForm, setPayoutForm] = useState({
+    payoutAccountNumber: '',
+    payoutBankName: '',
+    payoutAccountName: '',
   })
 
   function startEdit() {
@@ -61,10 +73,6 @@ export default function ProfilePage() {
     setEditing(true)
   }
 
-  function cancelEdit() {
-    setEditing(false)
-  }
-
   async function handleSave() {
     await updateMutation.mutateAsync({
       firstName: form.firstName,
@@ -73,6 +81,36 @@ export default function ProfilePage() {
       dateOfBirth: form.dateOfBirth || undefined,
     })
     setEditing(false)
+  }
+
+  function startEditBvn() {
+    if (!profile) return
+    setBvnForm({ bvn: profile.bvn ?? '' })
+    setEditingBvn(true)
+  }
+
+  async function handleSaveBvn() {
+    await bvnMutation.mutateAsync(bvnForm.bvn)
+    setEditingBvn(false)
+  }
+
+  function startEditPayout() {
+    if (!profile) return
+    setPayoutForm({
+      payoutAccountNumber: profile.payoutAccountNumber ?? '',
+      payoutBankName: profile.payoutBankName ?? '',
+      payoutAccountName: profile.payoutAccountName ?? '',
+    })
+    setEditingPayout(true)
+  }
+
+  async function handleSavePayout() {
+    await payoutMutation.mutateAsync({
+      payoutAccountNumber: payoutForm.payoutAccountNumber,
+      payoutBankName: payoutForm.payoutBankName,
+      payoutAccountName: payoutForm.payoutAccountName,
+    })
+    setEditingPayout(false)
   }
 
   if (isLoading) {
@@ -130,7 +168,7 @@ export default function ProfilePage() {
         {!editing && (
           <Button variant="outline" size="sm" onClick={startEdit}>
             <PencilSimple size={16} />
-            Edit
+            Edit Profile
           </Button>
         )}
       </div>
@@ -180,12 +218,17 @@ export default function ProfilePage() {
                 value={form.dateOfBirth}
                 onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
               />
+
               <div className="flex items-center gap-3 pt-2">
                 <Button onClick={handleSave} loading={updateMutation.isPending}>
                   <FloppyDisk size={16} />
                   Save Changes
                 </Button>
-                <Button variant="ghost" onClick={cancelEdit} disabled={updateMutation.isPending}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setEditing(false)}
+                  disabled={updateMutation.isPending}
+                >
                   <X size={16} />
                   Cancel
                 </Button>
@@ -196,9 +239,6 @@ export default function ProfilePage() {
                     ? updateMutation.error.message
                     : 'Failed to update profile'}
                 </p>
-              )}
-              {updateMutation.isSuccess && (
-                <p className="text-sm text-nomba-success">Profile updated successfully</p>
               )}
             </div>
           ) : (
@@ -232,49 +272,131 @@ export default function ProfilePage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-nomba-border mb-4">
             <CardTitle>
               <span className="flex items-center gap-2">
                 <CheckCircle size={18} />
                 Verification Status
               </span>
             </CardTitle>
+            {!editingBvn && (
+              <Button variant="ghost" size="sm" onClick={startEditBvn}>
+                <PencilSimple size={16} />
+                Update BVN
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-nomba-text-secondary">Email Verified</span>
-                <Badge variant="success">Verified</Badge>
+            {editingBvn ? (
+              <div className="space-y-4 pt-2">
+                <Input
+                  label="BVN"
+                  value={bvnForm.bvn}
+                  onChange={(e) => setBvnForm({ bvn: e.target.value })}
+                  placeholder="Enter 11-digit BVN"
+                />
+                <div className="flex items-center gap-3">
+                  <Button onClick={handleSaveBvn} loading={bvnMutation.isPending} size="sm">
+                    Save BVN
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setEditingBvn(false)}
+                    size="sm"
+                    disabled={bvnMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-nomba-text-secondary">KYC Completed</span>
-                <Badge variant={profile.bvn ? 'success' : 'warning'}>
-                  {profile.bvn ? 'Completed' : 'Pending'}
-                </Badge>
+            ) : (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-nomba-text-secondary">Email Verified</span>
+                  <Badge variant="success">Verified</Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-nomba-text-secondary">KYC Completed</span>
+                  <Badge variant={profile.bvn ? 'success' : 'warning'}>
+                    {profile.bvn ? 'Completed' : 'Pending'}
+                  </Badge>
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
-        {profile.payoutAccountNumber && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <span className="flex items-center gap-2">
-                  <Bank size={18} />
-                  Payout Account
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-nomba-border mb-4">
+            <CardTitle>
+              <span className="flex items-center gap-2">
+                <Bank size={18} />
+                Payout Account
+              </span>
+            </CardTitle>
+            {!editingPayout && (
+              <Button variant="ghost" size="sm" onClick={startEditPayout}>
+                <PencilSimple size={16} />
+                {profile.payoutAccountNumber ? 'Update' : 'Add Details'}
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            {editingPayout ? (
+              <div className="space-y-4 pt-2">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    label="Bank Name"
+                    value={payoutForm.payoutBankName}
+                    onChange={(e) =>
+                      setPayoutForm({ ...payoutForm, payoutBankName: e.target.value })
+                    }
+                    placeholder="e.g. GTBank"
+                  />
+                  <Input
+                    label="Account Number"
+                    value={payoutForm.payoutAccountNumber}
+                    onChange={(e) =>
+                      setPayoutForm({ ...payoutForm, payoutAccountNumber: e.target.value })
+                    }
+                    placeholder="10 digit account number"
+                  />
+                </div>
+                <Input
+                  label="Account Name"
+                  value={payoutForm.payoutAccountName}
+                  onChange={(e) =>
+                    setPayoutForm({ ...payoutForm, payoutAccountName: e.target.value })
+                  }
+                  placeholder="Exact name on account"
+                />
+                <div className="flex items-center gap-3">
+                  <Button onClick={handleSavePayout} loading={payoutMutation.isPending} size="sm">
+                    Save Payout
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setEditingPayout(false)}
+                    size="sm"
+                    disabled={payoutMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : profile.payoutAccountNumber ? (
+              <div className="space-y-3 pt-2">
                 <PayoutRow label="Account Name" value={profile.payoutAccountName ?? '-'} />
                 <PayoutRow label="Account Number" value={profile.payoutAccountNumber} />
                 <PayoutRow label="Bank" value={profile.payoutBankName ?? '-'} />
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <div className="py-4 text-center text-sm text-nomba-text-secondary">
+                No payout account configured yet.
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

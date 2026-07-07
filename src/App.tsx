@@ -25,6 +25,9 @@ const GroupManagementPage = lazy(() => import('@/pages/admin/GroupManagementPage
 const GroupDetailPage = lazy(() => import('@/pages/admin/GroupDetailPage'))
 const MembersPage = lazy(() => import('@/pages/admin/MembersPage'))
 const SystemOverviewPage = lazy(() => import('@/pages/admin/SystemOverviewPage'))
+const UsersPage = lazy(() => import('@/pages/admin/UsersPage'))
+const SystemCyclesPage = lazy(() => import('@/pages/admin/SystemCyclesPage'))
+const SettingsPage = lazy(() => import('@/pages/admin/SettingsPage'))
 const JoinGroupPage = lazy(() => import('@/pages/trader/JoinGroupPage'))
 
 const queryClient = new QueryClient({
@@ -46,6 +49,9 @@ function HomeRoute() {
 
 function DashboardIndex() {
   const { user } = useAuth()
+  if (user?.role === UserRole.SystemAdmin) {
+    return <SystemOverviewPage />
+  }
   if (user?.role === UserRole.CooperativeAdmin) {
     return <AdminDashboard />
   }
@@ -62,6 +68,9 @@ function GroupsRoute() {
 
 function CyclesRoute() {
   const { user } = useAuth()
+  if (user?.role === UserRole.SystemAdmin) {
+    return <SystemCyclesPage />
+  }
   if (user?.role === UserRole.CooperativeAdmin) {
     return <AdminCyclesPage />
   }
@@ -189,7 +198,7 @@ export default function App() {
                   element={
                     <ProtectedRoute roles={[UserRole.SystemAdmin]}>
                       <Suspense fallback={<RouteFallback />}>
-                        <SystemOverviewPage />
+                        <UsersPage />
                       </Suspense>
                     </ProtectedRoute>
                   }
@@ -199,7 +208,7 @@ export default function App() {
                   element={
                     <ProtectedRoute roles={[UserRole.SystemAdmin]}>
                       <Suspense fallback={<RouteFallback />}>
-                        <SystemOverviewPage />
+                        <SettingsPage />
                       </Suspense>
                     </ProtectedRoute>
                   }
