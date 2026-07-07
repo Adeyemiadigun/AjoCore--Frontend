@@ -66,6 +66,9 @@ export interface SavingCycle {
   nextContributionDate?: string | null
   progress: number
   groupId?: string | null
+  currentInterval?: number
+  currentIntervalTarget?: number
+  currentIntervalSaved?: number
 }
 
 export interface SavingCycleDetail extends SavingCycle {
