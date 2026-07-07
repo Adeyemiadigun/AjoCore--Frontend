@@ -15,7 +15,7 @@ import { blobPositions } from './data'
 import { Blob, containerVariants, itemVariants } from './components'
 
 export function HeroSection() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
   return (
     <section className="relative min-h-dvh flex items-center overflow-hidden bg-gradient-to-b from-nomba-yellow-light/10 via-nomba-yellow-light/20 to-nomba-surface">
@@ -60,7 +60,9 @@ export function HeroSection() {
               variants={itemVariants}
               className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              {isAuthenticated ? (
+              {isLoading ? (
+                <div className="h-14 w-48 animate-pulse rounded-2xl bg-neutral-200/50" />
+              ) : isAuthenticated ? (
                 <Link
                   to="/dashboard"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-nomba-yellow text-nomba-text font-bold text-lg hover:bg-nomba-yellow-dark shadow-card-hover shadow-nomba-yellow/40 hover:shadow-nomba-yellow-dark/30 transition-all"

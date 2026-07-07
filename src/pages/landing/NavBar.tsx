@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 export function NavBar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   const { scrollY } = useScroll()
 
   useEffect(() => {
@@ -55,7 +55,9 @@ export function NavBar() {
             >
               FAQ
             </a>
-            {isAuthenticated ? (
+            {isLoading ? (
+              <div className="h-10 w-32 animate-pulse rounded-xl bg-neutral-200/50" />
+            ) : isAuthenticated ? (
               <Link
                 to="/dashboard"
                 className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${scrolled ? 'bg-white text-neutral-900 hover:opacity-90' : 'bg-nomba-text text-white hover:opacity-80'}`}
@@ -117,11 +119,13 @@ export function NavBar() {
           >
             FAQ
           </a>
-          {isAuthenticated ? (
+          {isLoading ? (
+            <div className="h-10 w-full animate-pulse rounded-xl bg-neutral-200/50 mt-2" />
+          ) : isAuthenticated ? (
             <Link
               to="/dashboard"
               onClick={() => setMobileOpen(false)}
-              className="block px-4 py-3 text-sm font-semibold text-center bg-nomba-text text-white rounded-xl"
+              className="block px-4 py-3 text-sm font-semibold text-center bg-nomba-text text-white rounded-xl mt-2"
             >
               Dashboard
             </Link>

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import {
   ChartLineUp,
   User,
@@ -52,12 +52,15 @@ export function Sidebar({ onClose }: SidebarProps = {}) {
 
   return (
     <aside className="flex h-dvh w-64 flex-col border-r border-nomba-border bg-nomba-surface">
-      <div className="flex items-center gap-2 border-b border-nomba-border px-6 py-5">
+      <Link
+        to="/"
+        className="flex items-center gap-2 border-b border-nomba-border px-6 py-5 hover:opacity-80 transition-opacity"
+      >
         <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-nomba-yellow text-sm font-extrabold text-nomba-text">
           A
         </div>
         <span className="text-lg font-bold font-display text-nomba-text">AjoCore</span>
-      </div>
+      </Link>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
         {links.map((link) => (
