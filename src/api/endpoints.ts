@@ -216,12 +216,12 @@ export const cycles = {
             cycleType: TYPE_MAP[cb.CycleType ?? cb.cycleType ?? ''] ?? CycleType.Individual,
             targetAmount: Number(cb.TargetAmount ?? cb.targetAmount ?? 0),
             totalSaved: Number(cb.TotalPaid ?? cb.totalPaid ?? 0),
-            contributionAmount: 0,
-            frequency: ContributionFrequency.Monthly,
+            contributionAmount: Number(cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0),
+            frequency: intervalToFrequency(cb.IntervalDays ?? cb.intervalDays ?? 7),
             startDate: '',
             endDate: '',
             status: STATUS_MAP[cb.CycleStatus ?? cb.cycleStatus ?? ''] ?? CycleStatus.Active,
-            memberCount: 1,
+            memberCount: cb.MemberCount ?? cb.memberCount ?? 1,
             nextContributionDate: null,
             progress:
               (cb.CurrentIntervalTarget ?? cb.currentIntervalTarget ?? 0) > 0
