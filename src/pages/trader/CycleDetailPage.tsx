@@ -139,7 +139,6 @@ export default function CycleDetailPage() {
   const now = new Date()
   const start = cycleDetails?.startDate ? new Date(cycleDetails.startDate) : null
 
-  let currentInterval = 1
   let intervalStart = start
   let intervalEnd = cycleDetails?.endDate ? new Date(cycleDetails.endDate) : null
 
