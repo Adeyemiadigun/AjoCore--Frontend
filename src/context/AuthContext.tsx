@@ -38,6 +38,15 @@ function persistAuth(response: AuthResponse) {
   localStorage.setItem('ajocore_user', JSON.stringify(mapResponse(response)))
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
@@ -47,11 +56,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem('ajocore_token')
     const storedUser = localStorage.getItem('ajocore_user')
     if (storedToken && storedUser) {
-      setToken(storedToken)
-      try {
-        setUser(JSON.parse(storedUser) as User)
-      } catch {
-        localStorage.clear()
+      if (isTokenExpired(storedToken)) {
+        localStorage.removeItem('ajocore_token')
+        localStorage.removeItem('ajocore_refresh_token')
+        localStorage.removeItem('ajocore_user')
+      } else {
+        setToken(storedToken)
+        try {
+          setUser(JSON.parse(storedUser) as User)
+        } catch {
+          localStorage.removeItem('ajocore_token')
+          localStorage.removeItem('ajocore_refresh_token')
+          localStorage.removeItem('ajocore_user')
+        }
       }
     }
     setIsLoading(false)
