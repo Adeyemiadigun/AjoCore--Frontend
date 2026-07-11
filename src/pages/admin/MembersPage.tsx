@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Table } from '@/components/ui/Table'
@@ -9,7 +9,6 @@ import { formatDateTime } from '@/lib/utils'
 
 import { Button } from '@/components/ui/Button'
 import { extractApiError } from '@/lib/api-utils'
-import { useQueryClient } from '@tanstack/react-query'
 
 interface GroupMember {
   id: string
@@ -160,7 +159,7 @@ export default function MembersPage() {
           <select
             value={selectedGroupId || managedGroup?.id || ''}
             onChange={(e) => setSelectedGroupId(e.target.value)}
-            className="w-full sm:w-auto min-w-[200px] cursor-pointer appearance-none rounded-[var(--radius-md)] border-2 border-nomba-border bg-white px-4 py-2 pr-10 text-sm font-medium text-nomba-text transition-colors hover:border-nomba-yellow focus:border-nomba-yellow focus:ring-0 focus:outline-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%20stroke%3D%22%231A1A1A%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[right_12px_center] bg-no-repeat"
+            className="w-full sm:w-auto min-w-[200px] cursor-pointer appearance-none rounded-[var(--radius-md)] border-2 border-nomba-border bg-white px-4 py-2 text-sm font-medium text-nomba-text transition-colors hover:border-nomba-yellow focus:border-nomba-yellow focus:ring-0 focus:outline-none"
           >
             {managedGroups.map((group) => (
               <option key={group.id} value={group.id}>
