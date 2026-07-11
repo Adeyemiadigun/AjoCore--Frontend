@@ -363,7 +363,9 @@ export const groups = {
           members: (r.data.members ?? r.data.Members ?? []).map((m: any) => ({
             traderId: m.traderId ?? m.TraderId ?? '',
             traderName: m.traderName ?? m.TraderName ?? '',
+            traderPhone: m.traderPhone ?? m.TraderPhone ?? '',
             joinedAt: m.joinedAt ?? m.JoinedAt ?? '',
+            membershipId: m.membershipId ?? m.MembershipId ?? '',
           })),
           activeCycles: r.data.activeCycles ?? r.data.ActiveCycles ?? [],
           completedCycles: r.data.completedCycles ?? r.data.CompletedCycles ?? [],
@@ -403,6 +405,16 @@ export const groups = {
     apiClient.post(`/groups/${groupId}/members/add`, members).then((r) => r.data),
   getMembers: (groupId: string) =>
     apiClient.get<any[]>(`/groups/${groupId}/members`).then((r) => r.data),
+  deactivate: (groupId: string) =>
+    apiClient.post(`/groups/${groupId}/deactivate`).then((r) => r.data),
+  removeMember: (groupId: string, membershipId: string) =>
+    apiClient.delete(`/groups/${groupId}/members/${membershipId}`).then((r) => r.data),
+  getPayoutLedger: (groupId: string, params?: { fromDate?: string; toDate?: string }) =>
+    apiClient.get<any[]>(`/groups/${groupId}/payouts`, { params }).then((r) => r.data),
+  getContributionLedger: (
+    groupId: string,
+    params?: { cycleId?: string; fromDate?: string; toDate?: string },
+  ) => apiClient.get<any[]>(`/groups/${groupId}/contributions`, { params }).then((r) => r.data),
 }
 
 export const banks = {

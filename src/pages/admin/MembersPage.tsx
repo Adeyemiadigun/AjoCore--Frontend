@@ -7,41 +7,23 @@ import { groups } from '@/api/endpoints'
 import { useAuth } from '@/context/AuthContext'
 import { formatDateTime } from '@/lib/utils'
 
+import { Button } from '@/components/ui/Button'
+import { extractApiError } from '@/lib/api-utils'
+import { useQueryClient } from '@tanstack/react-query'
+
 interface GroupMember {
   id: string
   traderId: string
   traderName: string
   traderEmail: string
+  traderPhone?: string
   status: string
   approvedAt: string
 }
 
-const columns = [
-  {
-    key: 'traderName',
-    header: 'Name',
-    render: (m: GroupMember) => <span className="font-medium text-nomba-text">{m.traderName}</span>,
-  },
-  { key: 'traderEmail', header: 'Email', render: (m: GroupMember) => m.traderEmail },
-  { key: 'role', header: 'Role', render: () => 'Trader' },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (m: GroupMember) => (
-      <Badge variant={m.status.toLowerCase() === 'approved' ? 'success' : 'warning'}>
-        {m.status}
-      </Badge>
-    ),
-  },
-  {
-    key: 'approvedAt',
-    header: 'Joined At',
-    render: (m: GroupMember) => (m.approvedAt ? formatDateTime(m.approvedAt) : '-'),
-  },
-]
-
 export default function MembersPage() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
 
   // First fetch all groups to find the ones managed by this admin
@@ -60,6 +42,63 @@ export default function MembersPage() {
   }, [managedGroups, selectedGroupId])
 
   const managedGroup = managedGroups.find((g) => g.id === selectedGroupId) || managedGroups[0]
+
+  const columns = [
+    {
+      key: 'traderName',
+      header: 'Name',
+      render: (m: GroupMember) => (
+        <span className="font-medium text-nomba-text">{m.traderName}</span>
+      ),
+    },
+    { key: 'traderEmail', header: 'Email', render: (m: GroupMember) => m.traderEmail },
+    { key: 'traderPhone', header: 'Phone', render: (m: GroupMember) => m.traderPhone || '-' },
+    { key: 'role', header: 'Role', render: () => 'Trader' },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (m: GroupMember) => (
+        <Badge variant={m.status.toLowerCase() === 'approved' ? 'success' : 'warning'}>
+          {m.status}
+        </Badge>
+      ),
+    },
+    {
+      key: 'approvedAt',
+      header: 'Joined At',
+      render: (m: GroupMember) => (m.approvedAt ? formatDateTime(m.approvedAt) : '-'),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (m: GroupMember) => (
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-nomba-error border-nomba-error hover:bg-nomba-error/10"
+          onClick={() => {
+            if (!managedGroup) return
+            if (
+              window.confirm(`Are you sure you want to remove ${m.traderName} from this group?`)
+            ) {
+              groups
+                .removeMember(managedGroup.id, m.id)
+                .then(() => {
+                  queryClient.invalidateQueries({
+                    queryKey: ['groups', 'members', managedGroup.id],
+                  })
+                  queryClient.invalidateQueries({ queryKey: ['groups', 'detail', managedGroup.id] })
+                  alert('Member removed successfully')
+                })
+                .catch((err) => alert(extractApiError(err, 'Failed to remove member')))
+            }
+          }}
+        >
+          Remove
+        </Button>
+      ),
+    },
+  ]
 
   const {
     data: members,

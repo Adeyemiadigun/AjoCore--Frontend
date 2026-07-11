@@ -35,6 +35,26 @@ export default function GroupDetailPage() {
     enabled: !!groupId,
   })
 
+  const [ledgerTab, setLedgerTab] = useState<'payout' | 'contribution'>('payout')
+  const [ledgerFilterDate, setLedgerFilterDate] = useState('')
+
+  const { data: payoutLedger, isLoading: isLoadingPayouts } = useQuery({
+    queryKey: ['groups', 'payouts', groupId, ledgerFilterDate],
+    queryFn: () =>
+      groups.getPayoutLedger(groupId!, ledgerFilterDate ? { fromDate: ledgerFilterDate } : {}),
+    enabled: !!groupId && ledgerTab === 'payout',
+  })
+
+  const { data: contributionLedger, isLoading: isLoadingContributions } = useQuery({
+    queryKey: ['groups', 'contributions', groupId, ledgerFilterDate],
+    queryFn: () =>
+      groups.getContributionLedger(
+        groupId!,
+        ledgerFilterDate ? { fromDate: ledgerFilterDate } : {},
+      ),
+    enabled: !!groupId && ledgerTab === 'contribution',
+  })
+
   const approveMutation = useMutation({
     mutationFn: groups.approveJoin,
     onSuccess: () => {
@@ -134,9 +154,31 @@ export default function GroupDetailPage() {
             {group.description || 'No description provided'}
           </p>
         </div>
-        <Badge variant={group.isActive ? 'success' : 'default'} className="w-fit">
-          {group.isActive ? 'Active' : 'Inactive'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={group.isActive ? 'success' : 'default'} className="w-fit">
+            {group.isActive ? 'Active' : 'Inactive'}
+          </Badge>
+          {group.isActive && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-nomba-error border-nomba-error"
+              onClick={() => {
+                if (window.confirm('Are you sure you want to deactivate this group?')) {
+                  groups
+                    .deactivate(groupId!)
+                    .then(() => {
+                      queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] })
+                      alert('Group deactivated successfully')
+                    })
+                    .catch((err) => alert(extractApiError(err, 'Failed to deactivate group')))
+                }
+              }}
+            >
+              Deactivate
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -212,7 +254,9 @@ export default function GroupDetailPage() {
                     <thead>
                       <tr className="border-b border-nomba-border text-nomba-text-secondary">
                         <th className="py-3 font-medium">Name</th>
+                        <th className="py-3 font-medium">Phone</th>
                         <th className="py-3 font-medium">Joined At</th>
+                        <th className="py-3 font-medium text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-nomba-border">
@@ -220,7 +264,34 @@ export default function GroupDetailPage() {
                         <tr key={member.traderId}>
                           <td className="py-3 font-medium text-nomba-text">{member.traderName}</td>
                           <td className="py-3 text-nomba-text-secondary">
+                            {member.traderPhone || 'N/A'}
+                          </td>
+                          <td className="py-3 text-nomba-text-secondary">
                             {formatDateTime(member.joinedAt)}
+                          </td>
+                          <td className="py-3 text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-nomba-error border-nomba-error hover:bg-nomba-error/10"
+                              onClick={() => {
+                                if (window.confirm(`Remove ${member.traderName} from group?`)) {
+                                  groups
+                                    .removeMember(groupId!, member.membershipId)
+                                    .then(() => {
+                                      queryClient.invalidateQueries({
+                                        queryKey: ['groups', 'detail', groupId],
+                                      })
+                                      alert('Member removed successfully')
+                                    })
+                                    .catch((err) =>
+                                      alert(extractApiError(err, 'Failed to remove member')),
+                                    )
+                                }
+                              }}
+                            >
+                              Remove
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -245,12 +316,114 @@ export default function GroupDetailPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   {group.activeCycles.map((cycle: any) => (
                     <div key={cycle.id} className="rounded border border-nomba-border p-3">
-                      <p className="font-semibold text-nomba-text">{cycle.cycleName}</p>
+                      <p className="font-semibold text-nomba-text">
+                        {cycle.cycleName || cycle.name}
+                      </p>
                       <p className="text-xs text-nomba-text-secondary">
-                        Goal: {formatCurrency(cycle.targetAmount)}
+                        Goal: {formatCurrency(cycle.targetAmount || cycle.contributionAmount)}
                       </p>
                     </div>
                   ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ledgers Section */}
+          <Card>
+            <CardHeader className="border-b border-nomba-border pb-0">
+              <div className="flex justify-between items-end gap-4 pb-4">
+                <div className="flex gap-6">
+                  <button
+                    className={`pb-2 text-sm font-medium transition-colors ${ledgerTab === 'payout' ? 'border-b-2 border-nomba-yellow text-nomba-text' : 'text-nomba-text-secondary hover:text-nomba-text'}`}
+                    onClick={() => setLedgerTab('payout')}
+                  >
+                    Payout Ledger
+                  </button>
+                  <button
+                    className={`pb-2 text-sm font-medium transition-colors ${ledgerTab === 'contribution' ? 'border-b-2 border-nomba-yellow text-nomba-text' : 'text-nomba-text-secondary hover:text-nomba-text'}`}
+                    onClick={() => setLedgerTab('contribution')}
+                  >
+                    Contribution Ledger
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-nomba-text-secondary">From:</label>
+                  <Input
+                    type="date"
+                    className="h-8 text-sm"
+                    value={ledgerFilterDate}
+                    onChange={(e) => setLedgerFilterDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {ledgerTab === 'payout' ? (
+                isLoadingPayouts ? (
+                  <p className="text-sm text-nomba-text-secondary animate-pulse">Loading...</p>
+                ) : !payoutLedger?.length ? (
+                  <p className="text-sm text-nomba-text-secondary text-center">No payouts found.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-nomba-border text-nomba-text-secondary">
+                          <th className="py-2 font-medium">Date</th>
+                          <th className="py-2 font-medium">Member</th>
+                          <th className="py-2 font-medium">Cycle</th>
+                          <th className="py-2 font-medium">Amount</th>
+                          <th className="py-2 font-medium">Ref</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-nomba-border">
+                        {payoutLedger.map((p: any) => (
+                          <tr key={p.id}>
+                            <td className="py-2 text-nomba-text-secondary">
+                              {formatDateTime(p.payoutDate)}
+                            </td>
+                            <td className="py-2 text-nomba-text">{p.memberName}</td>
+                            <td className="py-2 text-nomba-text">{p.cycleName}</td>
+                            <td className="py-2 font-medium">{formatCurrency(p.amount)}</td>
+                            <td className="py-2 text-xs text-nomba-text-secondary">
+                              {p.merchantTxRef}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              ) : isLoadingContributions ? (
+                <p className="text-sm text-nomba-text-secondary animate-pulse">Loading...</p>
+              ) : !contributionLedger?.length ? (
+                <p className="text-sm text-nomba-text-secondary text-center">
+                  No contributions found.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-nomba-border text-nomba-text-secondary">
+                        <th className="py-2 font-medium">Date</th>
+                        <th className="py-2 font-medium">Member</th>
+                        <th className="py-2 font-medium">Cycle</th>
+                        <th className="py-2 font-medium">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-nomba-border">
+                      {contributionLedger.map((c: any) => (
+                        <tr key={c.id}>
+                          <td className="py-2 text-nomba-text-secondary">
+                            {formatDateTime(c.paidAt)}
+                          </td>
+                          <td className="py-2 text-nomba-text">{c.memberName}</td>
+                          <td className="py-2 text-nomba-text">{c.cycleName}</td>
+                          <td className="py-2 font-medium">{formatCurrency(c.amount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
