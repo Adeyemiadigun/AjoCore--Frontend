@@ -145,7 +145,11 @@ export default function CycleDetailPage() {
   let intervalEnd = cycleDetails?.endDate ? new Date(cycleDetails.endDate) : null
 
   if (start && start <= now && cycleDetails?.intervalDays > 0) {
-    const daysElapsed = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    let targetTime = now.getTime()
+    if (intervalEnd && now > intervalEnd) {
+      targetTime = intervalEnd.getTime() - 1
+    }
+    const daysElapsed = Math.floor((targetTime - start.getTime()) / (1000 * 60 * 60 * 24))
     currentInterval = Math.floor(daysElapsed / cycleDetails.intervalDays) + 1
 
     intervalStart = new Date(
